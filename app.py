@@ -2,21 +2,68 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- ডাটা কানেকশন ---
+# --- ডাটাবেস কানেকশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
 
 def get_url(name):
     return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={name}'
 
-st.set_page_config(page_title="Babussalam Digital Campus", page_icon="🕌", layout="wide")
+# পেজ কনফিগারেশন
+st.set_page_config(page_title="Babussalam Smart Campus", page_icon="🕌", layout="wide")
 
-# ডিজাইন (CSS)
+# --- প্রিমিয়াম কাস্টম ডিজাইন (CSS) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #f8fafc; }
-    .header-box { background: linear-gradient(135deg, #008080, #005a5a); padding: 30px; border-radius: 15px; color: white; text-align: center; margin-bottom: 25px; }
-    .notice-card { background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 10px solid #ffc107; font-size: 18px; color: #856404; font-weight: bold; }
-    .stButton>button { background-color: #008080 !important; color: white !important; font-weight: bold; border-radius: 10px; height: 50px; width: 100%; }
+    /* পুরো অ্যাপের ব্যাকগ্রাউন্ড */
+    .stApp { background-color: #f0f4f7; }
+    
+    /* সাইডবার ডিজাইন */
+    [data-testid="stSidebar"] { background-color: #ffffff !important; border-right: 2px solid #008080; }
+    
+    /* মেইন হেডার */
+    .header-container {
+        background: linear-gradient(135deg, #008080 0%, #005a5a 100%);
+        padding: 40px;
+        border-radius: 20px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    /* ড্যাশবোর্ড কার্ড */
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-bottom: 5px solid #008080;
+        transition: 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    
+    /* নোটিশ বোর্ড ডিজাইন */
+    .notice-card {
+        background: #fff8e1;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 10px solid #ffa000;
+        color: #5f4b00;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* বাটন ডিজাইন */
+    .stButton>button {
+        background: linear-gradient(135deg, #008080, #006666) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        font-weight: bold !important;
+        border: none !important;
+        box-shadow: 0 5px 15px rgba(0,128,128,0.3) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -26,74 +73,33 @@ def load_data(name):
         df = pd.read_csv(get_url(name))
         df.columns = df.columns.str.strip()
         return df
-    except:
-        return None
+    except: return None
 
-# মেনুবার
-menu = st.sidebar.radio("মেনু নির্বাচন করুন:", ["🏠 হোম পেজ", "🔍 ছাত্র রিপোর্ট (গার্ডিয়ান)", "🔐 অ্যাডমিন কন্ট্রোল"])
+# --- নেভিগেশন ---
+with st.sidebar:
+    st.markdown("<h1 style='text-align:center; color:#008080;'>🏫 কন্ট্রোল সেন্টার</h1>", unsafe_allow_html=True)
+    menu = st.radio("", ["📊 ড্যাশবোর্ড", "🔍 রিপোর্ট কার্ড (Guardian)", "🔐 অ্যাডমিন মাস্টার"])
 
-# ১. হোম পেজ (নোটিশ বোর্ড)
-if menu == "🏠 হোম পেজ":
-    st.markdown("<div class='header-box'><h1>🕌 বাবুস সালাম ইসলামি একাডেমি</h1><p>ডিজিটাল ম্যানেজমেন্ট সিস্টেম</p></div>", unsafe_allow_html=True)
-    st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
+# ১. ড্যাশবোর্ড (প্রিমিয়াম লুক)
+if menu == "📊 ড্যাশবোর্ড":
+    st.markdown("""
+        <div class='header-container'>
+            <h1 style='margin:0;'>🕌 বাবুস সালাম ইসলামি একাডেমি</h1>
+            <p style='opacity:0.9; font-size:18px;'>ডিজিটাল ক্যাম্পাস ম্যানেজমেন্ট সিস্টেম</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown("### 📢 জরুরি নোটিশ")
+    # স্ট্যাটাস কার্ডস
+    c1, c2, c3 = st.columns(3)
+    df_s = load_data("Student_List")
+    total_students = len(df_s) if df_s is not None else 0
+    
+    c1.markdown(f"<div class='stat-card'><h3>👨‍🎓 মোট ছাত্র</h3><h2 style='color:#008080;'>{total_students} জন</h2></div>", unsafe_allow_html=True)
+    c2.markdown(f"<div class='stat-card'><h3>📅 আজকের তারিখ</h3><h2 style='color:#008080;'>{datetime.now().strftime('%d %b %Y')}</h2></div>", unsafe_allow_html=True)
+    
     df_n = load_data("Notice")
-    if df_n is not None and not df_n.empty:
-        st.markdown(f"<div class='notice-card'>{df_n.iloc[-1, 0]}</div>", unsafe_allow_html=True)
-    else:
-        st.info("বর্তমানে কোনো নোটিশ নেই।")
-
-# ২. ছাত্র রিপোর্ট (গার্ডিয়ান সেকশন)
-elif menu == "🔍 ছাত্র রিপোর্ট (গার্ডিয়ান)":
-    st.markdown("<h2 style='color:#008080;'>🔍 ছাত্রের প্রতিদিনের রিপোর্ট</h2>", unsafe_allow_html=True)
-    sid = st.text_input("ছাত্রের আইডি (ID) দিন:")
+    notice_msg = df_n.iloc[-1, 0] if df_n is not None and not df_n.empty else "কোনো নতুন নোটিশ নেই"
+    c3.markdown(f"<div class='stat-card'><h3>📢 অ্যাক্টিভ নোটিশ</h3><p style='color:#008080; font-weight:bold;'>{notice_msg}</p></div>", unsafe_allow_html=True)
     
-    if sid:
-        # হাজিরা চেক
-        df_a = load_data("Form_Responses_1")
-        # রেজাল্ট চেক
-        df_r = load_data("Result_Sheet")
-        
-        t1, t2 = st.tabs(["📅 হাজিরা রিপোর্ট", "🏆 পরীক্ষার রেজাল্ট"])
-        
-        with t1:
-            if df_a is not None:
-                # আজকের তারিখের হাজিরা আছে কি না দেখা
-                u_att = df_a[df_a.iloc[:, 1].astype(str) == str(sid)]
-                if not u_att.empty:
-                    st.success(f"আইডি {sid} এর হাজিরার তথ্য পাওয়া গেছে।")
-                    st.dataframe(u_att, use_container_width=True)
-                else:
-                    st.warning("আজকের কোনো হাজিরা রেকর্ড পাওয়া যায়নি।")
-        
-        with t2:
-            if df_r is not None:
-                u_res = df_r[df_r.iloc[:, 0].astype(str) == str(sid)]
-                st.table(u_res)
-
-# ৩. অ্যাডমিন কন্ট্রোল (হাজিরা ও ছাত্র যোগ)
-elif menu == "🔐 অ্যাডমিন কন্ট্রোল":
-    st.markdown("<h2 style='color:#008080;'>🔐 অ্যাডমিন লগইন</h2>", unsafe_allow_html=True)
-    pin = st.text_input("আপনার গোপন পিন (PIN) দিন:", type="password")
-    
-    if pin == "MdmamuN18":
-        st.success("স্বাগতম অ্যাডমিন!")
-        
-        task = st.selectbox("কি করতে চান?", ["✅ হাজিরা নিন (টিক চিহ্ন)", "➕ নতুন ছাত্র ভর্তি", "📝 নোটিশ আপডেট করুন"])
-        
-        if task == "✅ হাজিরা নিন (টিক চিহ্ন)":
-            st.info("নিচের লিঙ্কে ক্লিক করে চেকবলিস্ট থেকে আজকের হাজিরা সম্পন্ন করুন।")
-            # আপনার গুগল ফর্মের হাজিরা লিঙ্ক যেখানে ছাত্রের নামের লিস্ট আছে
-            hajira_form = "https://docs.google.com/forms/d/e/1FAIpQLScm285SqA1ByiOzuxAG8bNCCb4-a3ndgrYRiZeZ7JLDXxJJVg/viewform"
-            st.markdown(f'<a href="{hajira_form}" target="_blank"><button>📝 হাজিরা ফর্ম ওপেন করুন</button></a>', unsafe_allow_html=True)
-            
-        elif task == "➕ নতুন ছাত্র ভর্তি":
-            vorti_form = "https://docs.google.com/forms/d/e/1FAIpQLScy-WjL_2p5V9W_l7C8J-uXjVz/viewform"
-            st.markdown(f'<iframe src="{vorti_form}" width="100%" height="800"></iframe>', unsafe_allow_html=True)
-            
-        elif task == "📝 নোটিশ আপডেট করুন":
-            st.warning("নোটিশ পরিবর্তন করতে সরাসরি আপনার গুগল শিটের 'Notice' ট্যাবে গিয়ে প্রথম লাইনে নতুন নোটিশটি লিখুন।")
-            
-    elif pin != "":
-        st.error("ভুল পিন! সঠিক পিন দিয়ে চেষ্টা করুন।")
+    st.write("---")
+    st.image("
