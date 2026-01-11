@@ -1,13 +1,26 @@
 import streamlit as st
 import pandas as pd
 
-# --- CONNECTION ---
+# --- ডাটা কানেকশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
 
-def get_url(name):
-    return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={name}'
+def get_url(sheet_name):
+    return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
 
-st.set_page_config(page_title="Babussalam Digital Campus", layout="wide")
+# অ্যাপের কনফিগারেশন
+st.set_page_config(page_title="বাবুস সালাম ডিজিটাল একাডেমি", page_icon="🕌", layout="wide")
+
+# কাস্টম ডিজাইন (CSS)
+st.markdown("""
+    <style>
+    .stApp { background-color: #f4f7f6; }
+    .banner-container { text-align: center; margin-bottom: 20px; }
+    .notice-card { background: #fff3cd; padding: 20px; border-radius: 12px; border-left: 8px solid #ffc107; color: #856404; font-size: 18px; font-weight: bold; margin-bottom: 25px; }
+    .profile-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 6px solid #008080; }
+    .info-box { background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #008080; }
+    .stButton>button { background: #008080; color: white; width: 100%; height: 45px; border-radius: 10px; font-weight: bold; }
+    </style>
+    """, unsafe_allow_html=True)
 
 @st.cache_data(ttl=5)
 def load_data(name):
@@ -18,69 +31,100 @@ def load_data(name):
     except:
         return None
 
-# Sidebar Menu
-menu = st.sidebar.radio("Select Menu:", ["🏠 Home", "🔍 Student Profile & Report", "🔐 Admin"])
+# --- মেনুবার ---
+menu = st.sidebar.radio("মেনু নির্বাচন করুন:", ["🏠 হোম পেজ", "🔍 ছাত্র প্রোফাইল ও রিপোর্ট", "👨‍🏫 শিক্ষক তালিকা", "🔐 অ্যাডমিন"])
 
-if menu == "🏠 Home":
-    st.title("🕌 বাবুস সালাম ইসলামি একাডেমি")
-    st.info("Student Profile-e ID diye search korle tarikh-shoho hajirar report pawa jabe.")
+# ১. হোম পেজ (আপনার ব্যানারসহ)
+if menu == "🏠 হোম পেজ":
+    # আপনার দেওয়া ব্যানারটি এখানে সেট করা হয়েছে
+    st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
+    
+    st.markdown("<h2 style='text-align: center; color: #008080;'>🕌 ডিজিটাল ম্যানেজমেন্ট সিস্টেমে স্বাগতম</h2>", unsafe_allow_html=True)
+    
+    # নোটিশ লোড
+    df_n = load_data("Notice")
+    if df_n is not None and not df_n.empty:
+        msg = df_n.iloc[-1]['Message']
+        st.markdown(f"<div class='notice-card'>📢 নোটিশ: {msg}</div>", unsafe_allow_html=True)
+    
+    st.success("ছাত্রের আইডি দিয়ে সার্চ করতে 'ছাত্র প্রোফাইল' মেনুতে যান।")
 
-elif menu == "🔍 Student Profile & Report":
-    st.header("🔍 ছাত্রের পূর্ণাঙ্গ রিপোর্ট")
-    sid = st.text_input("Student ID Likhun:")
+# ২. ছাত্র প্রোফাইল (সব রিপোর্ট একসাথে)
+elif menu == "🔍 ছাত্র প্রোফাইল ও রিপোর্ট":
+    st.header("🔍 স্টুডেন্ট রিপোর্ট কার্ড")
+    sid = st.text_input("ছাত্রের আইডি (ID) লিখুন:", placeholder="যেমন: 10001")
     
     if sid:
-        df_students = load_data("Student_List")
-        df_att = load_data("Form_Responses_1")
-        df_res = load_data("Result_Sheet")
+        df_s = load_data("Student_List")
+        df_a = load_data("Form_Responses_1")
+        df_r = load_data("Result_Sheet")
         
-        if df_students is not None:
-            student = df_students[df_students['ID'].astype(str) == str(sid)]
-            
-            if not student.empty:
-                s = student.iloc[0]
-                # Profile Info
-                st.subheader(f"👤 নাম: {s.get('Name')}")
+        if df_s is not None:
+            # আইডি কলাম চিনে নেওয়া
+            sid_col = [c for c in df_s.columns if 'ID' in c.upper() or 'আইডি' in c]
+            if sid_col:
+                student = df_s[df_s[sid_col[0]].astype(str) == str(sid)]
                 
-                # --- HAJIRA SECTION (Advanced) ---
-                st.write("---")
-                st.subheader("📅 হাজিরার বিস্তারিত ও সামারি")
-                
-                if df_att is not None:
-                    # ID column khuje ber kora
-                    id_col = [c for c in df_att.columns if 'ID' in c.upper() or 'আইডি' in c or 'Untitled' in c]
-                    status_col = [c for c in df_att.columns if 'অবস্থা' in c or 'Status' in c]
+                if not student.empty:
+                    s = student.iloc[0]
+                    st.balloons()
                     
-                    if id_col and status_col:
-                        # Shudhu ei chhatrer data filter kora
-                        att_res = df_att[df_att[id_col[0]].astype(str) == str(sid)].copy()
-                        
-                        if not att_res.empty:
-                            # Calculation
-                            total_days = len(att_res)
-                            present_days = len(att_res[att_res[status_col[0]].str.contains('উপস্থিত|Present', na=False)])
-                            absent_days = total_days - present_days
-                            
-                            # Summary Dashboard
-                            c1, c2, c3 = st.columns(3)
-                            c1.metric("মোট ক্লাস", f"{total_days} দিন")
-                            c2.metric("উপস্থিত", f"{present_days} দিন", delta_color="normal")
-                            c3.metric("অনুপস্থিত", f"{absent_days} দিন", delta="-"+str(absent_days))
-                            
-                            # Tarikh shoho Table (Timestamp column-e tarikh thake)
-                            st.write("**তারিখ অনুযায়ী হাজিরার তালিকা:**")
-                            st.dataframe(att_res[['Timestamp', status_col[0]]], use_container_width=True)
-                        else:
-                            st.warning("Ekhono kono hajira record kora hoyni.")
-                
-                # Result section niche thakbe...
-                if df_res is not None:
-                    st.write("---")
-                    st.subheader("🎓 রেজাল্ট কার্ড")
-                    res_m = df_res[df_res['ID'].astype(str) == str(sid)]
-                    if not res_m.empty: st.table(res_m.drop(columns=['ID']))
-            else:
-                st.error("ID khuje pawa jayni.")
+                    # প্রোফাইল ও ছবি
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        img = s.get('Photo_URL', "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+                        st.image(img, width=250, caption=f"ID: {sid}")
+                    with col2:
+                        st.markdown(f"""
+                        <div class='profile-card'>
+                            <h2 style='color:#008080;'>👤 {s.get('Name', s.get('নাম', 'N/A'))}</h2>
+                            <div class='info-box'><b>👨‍💼 পিতার নাম:</b> {s.get('Father_Name', 'N/A')}</div>
+                            <div class='info-box'><b>📞 মোবাইল:</b> {s.get('Mobile', 'N/A')}</div>
+                            <div class='info-box'><b>📍 ঠিকানা:</b> {s.get('Address', 'N/A')}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-elif menu == "🔐 Admin":
-    st.markdown(f'<a href="https://docs.google.com/forms/d/e/1FAIpQLScm285SqA1ByiOzuxAG8bNCCb4-a3ndgrYRiZeZ7JLDXxJJVg/viewform" target="_blank"><button style="width:100%; height:50px; background:#008080; color:white; border-radius:10px;">📝 হাজিরা নিন</button></a>', unsafe_allow_html=True)
+                    # হাজিরা রিপোর্ট ও ক্যালকুলেশন
+                    st.write("---")
+                    st.subheader("📅 হাজিরার সারাংশ ও বিস্তারিত")
+                    if df_a is not None:
+                        id_col_a = [c for c in df_a.columns if 'ID' in c.upper() or 'আইডি' in c or 'Untitled' in c]
+                        status_col = [c for c in df_a.columns if 'অবস্থা' in c or 'Status' in c]
+                        
+                        if id_col_a and status_col:
+                            user_att = df_a[df_a[id_col_a[0]].astype(str) == str(sid)]
+                            if not user_att.empty:
+                                total = len(user_att)
+                                present = len(user_att[user_att[status_col[0]].str.contains('উপস্থিত|Present', na=False)])
+                                absent = total - present
+                                
+                                m1, m2, m3 = st.columns(3)
+                                m1.metric("মোট ক্লাস", f"{total} দিন")
+                                m2.metric("উপস্থিত", f"{present} দিন")
+                                m3.metric("অনুপস্থিত", f"{absent} দিন", delta="-"+str(absent))
+                                
+                                st.dataframe(user_att[['Timestamp', status_col[0]]], use_container_width=True)
+
+                    # রেজাল্ট রিপোর্ট
+                    st.write("---")
+                    st.subheader("🎓 পরীক্ষার ফলাফল")
+                    if df_r is not None:
+                        id_col_r = [c for c in df_r.columns if 'ID' in c.upper() or 'আইডি' in c]
+                        if id_col_r:
+                            user_res = df_r[df_r[id_col_r[0]].astype(str) == str(sid)]
+                            if not user_res.empty:
+                                st.table(user_res.drop(columns=[id_col_res[0]]))
+                else: st.error("দুঃখিত, এই আইডি-র কোনো তথ্য পাওয়া যায়নি।")
+
+# ৩. শিক্ষক তালিকা
+elif menu == "👨‍🏫 শিক্ষক তালিকা":
+    st.header("👨‍🏫 আমাদের শিক্ষকবৃন্দ")
+    df_t = load_data("Teacher_List")
+    if df_t is not None:
+        st.dataframe(df_t, use_container_width=True)
+
+# ৪. অ্যাডমিন
+elif menu == "🔐 অ্যাডমিন":
+    if st.text_input("পাসওয়ার্ড:", type="password") == "admin123":
+        st.success("লগইন সফল")
+        st.markdown(f'<a href="https://docs.google.com/forms/d/e/1FAIpQLScm285SqA1ByiOzuxAG8bNCCb4-a3ndgrYRiZeZ7JLDXxJJVg/viewform" target="_blank"><button>📝 ডিজিটাল হাজিরা নিন</button></a>', unsafe_allow_html=True)
