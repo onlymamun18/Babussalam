@@ -5,7 +5,6 @@ from datetime import datetime
 
 # --- ডাটা কানেকশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
-# আপনার নতুন ইউআরএল আপডেট করা হলো
 SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWcYkDBW8T3mUF3WqZj7Me_l7dTd1xQA95B9QP-gUc9yUaPYWVODyiTaEU_s4Aixzs/exec"
 
 def get_url(sheet_name):
@@ -31,13 +30,15 @@ st.markdown("""
     .present-list {
         background: white; padding: 20px; border-radius: 20px;
         border-left: 10px solid #28a745; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        max-height: 400px; overflow-y: auto;
+        max-height: 450px; overflow-y: auto;
     }
     .fb-box {
-        background: #1877F2; color: white; padding: 10px; 
-        border-radius: 10px; text-decoration: none; display: inline-block;
-        font-weight: bold; margin-top: 10px;
+        background: #ffffff; color: #1877F2 !important; padding: 12px 30px; 
+        border-radius: 50px; text-decoration: none; display: inline-block;
+        font-weight: bold; margin-top: 15px; font-size: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: 0.3s;
     }
+    .fb-box:hover { background: #1877F2; color: white !important; transform: scale(1.05); }
     </style>
     """, unsafe_allow_html=True)
 
@@ -65,6 +66,7 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
     
     present_names = []
     if df_a is not None and not df_a.empty:
+        # তারিখের সাথে ম্যাচ করা রো গুলো ফিল্টার করা
         today_rows = df_a[df_a.iloc[:, 0].astype(str).str.contains(today_1) | df_a.iloc[:, 0].astype(str).str.contains(today_2)]
         if not today_rows.empty:
             all_str = today_rows.iloc[:, 1].astype(str).str.cat(sep=',')
@@ -74,20 +76,20 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
     
     with col1:
         st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
-        # উজ্জ্বল কন্টাক্ট সেকশন
+        # কন্টাক্ট সেকশন
         st.markdown(f"""
             <div class='contact-hero'>
-                <p style='font-size: 20px; margin:0;'>ভর্তি বা যেকোনো তথ্যের জন্য সরাসরি যোগাযোগ করুন</p>
-                <h1 style='font-size: 50px; margin:10px 0;'>📞 01954343364</h1>
-                <p style='font-size: 18px;'>আমাদের কার্যক্রম সম্পর্কে জানতে ফেসবুক পেজে চোখ রাখুন</p>
-                <a href='https://www.facebook.com/yourpage' class='fb-box'>Facebook Page</a>
+                <p style='font-size: 22px; margin:0;'>ভর্তি বা যেকোনো তথ্যের জন্য যোগাযোগ করুন</p>
+                <h1 style='font-size: 55px; margin:10px 0;'>📞 01954343364</h1>
+                <p style='font-size: 18px; opacity:0.9;'>মাদরাসার দৈনন্দিন কার্যক্রম দেখতে ফেসবুক পেজে যুক্ত হন</p>
+                <a href='https://web.facebook.com/BabussalamIslamiAcademi' target='_blank' class='fb-box'>🌐 ফেসবুক পেজে চোখ রাখুন</a>
             </div>
         """, unsafe_allow_html=True)
         
     with col2:
-        st.markdown(f"### ✅ আজকের উপস্থিতি ({len(present_names)})")
+        st.markdown(f"<h3 style='color:#004d4d; text-align:center;'>✅ আজকের উপস্থিতি ({len(present_names)})</h3>", unsafe_allow_html=True)
         if present_names:
-            html_list = "".join([f"<li style='font-size:18px; color:#004d4d; border-bottom:1px solid #eee; padding:5px 0;'>🟢 {name}</li>" for name in present_names])
+            html_list = "".join([f"<li style='font-size:19px; color:#004d4d; border-bottom:1px solid #eee; padding:8px 0;'>🟢 {name}</li>" for name in present_names])
             st.markdown(f"<div class='present-list'><ul style='list-style:none; padding:0;'>{html_list}</ul></div>", unsafe_allow_html=True)
         else:
             st.info("আজকে এখনও কেউ হাজিরা দেয়নি।")
@@ -95,7 +97,7 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
 # ২. স্টুডেন্ট রিপোর্ট
 elif menu == "🔍 স্টুডেন্ট রিপোর্ট":
     st.markdown("<h2 style='color:#004d4d; background:white; padding:10px; border-radius:10px; text-align:center;'>🔍 শিক্ষার্থীর প্রোফাইল অনুসন্ধান</h2>", unsafe_allow_html=True)
-    sid = st.text_input("আইডি (ID) নম্বর দিন:")
+    sid = st.text_input("ছাত্রের আইডি (ID) নম্বর দিন এবং এন্টার চাপুন:")
     if sid and df_s is not None:
         student = df_s[df_s.iloc[:, 0].astype(str).str.strip() == str(sid).strip()]
         if not student.empty:
@@ -111,9 +113,11 @@ elif menu == "🔍 স্টুডেন্ট রিপোর্ট":
             if df_a is not None:
                 today_data = df_a[df_a.iloc[:, 0].astype(str).str.contains(today_1) | df_a.iloc[:, 0].astype(str).str.contains(today_2)]
                 if not today_data.empty and any(today_data.iloc[:, 1].astype(str).str.contains(str(name))):
-                    st.success(f"🌟 {name} আজকে উপস্থিত আছে।")
+                    st.success(f"🌟 আলহামদুলিল্লাহ, {name} আজকে উপস্থিত আছে।")
                 else:
-                    st.error(f"⚠️ {name} আজকে অনুপস্থিত।")
+                    st.error(f"⚠️ দুঃখিত, {name} আজকে অনুপস্থিত।")
+        else:
+            st.error("আইডি পাওয়া যায়নি।")
 
 # ৩. অ্যাডমিন অ্যাক্সেস
 elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
@@ -124,7 +128,7 @@ elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
                 selected = st.multiselect("উপস্থিত ছাত্র সিলেক্ট করুন:", df_s['Name'].tolist())
                 if st.button("হাজিরা সেভ করুন"):
                     requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(selected)})
-                    st.success("হাজিরা নেওয়া হয়েছে!")
+                    st.success("হাজিরা সেভ হয়েছে!")
                     st.balloons()
         with tab2:
             st.markdown("### 📝 বিস্তারিত ভর্তি ফরম")
@@ -140,4 +144,6 @@ elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
                     n_cert = st.text_input("জন্ম সনদ নং:")
                 n_photo = st.text_input("ছবির URL:")
                 if st.form_submit_button("ভর্তি নিশ্চিত করুন"):
-                    payload = {"action":"admission","id":n_id,"name":n_name,"father":n_father,"mother":n_mother,"mobile":n_mob,"address":n_addr,"thana":n_thana,"zella":n_zella,"dob":str(
+                    payload = {"action":"admission","id":n_id,"name":n_name,"father":n_father,"mother":n_mother,"mobile":n_mob,"address":n_addr,"thana":n_thana,"zella":n_zella,"dob":str(n_dob),"birth_cert":n_cert,"photo":n_photo}
+                    requests.post(SCRIPT_URL, json=payload)
+                    st.success("ভর্তি সফল হয়েছে!")
