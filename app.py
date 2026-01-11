@@ -1,57 +1,33 @@
 import streamlit as st
 import pandas as pd
 
-# --- ডাটা কানেকশন কনফিগারেশন ---
+# --- CONNECTION ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
 
-def get_url(sheet_name):
-    return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
+def get_url(name):
+    return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={name}'
 
-# অ্যাপ সেটিংস
-st.set_page_config(page_title="বাবুস সালাম ডিজিটাল ক্যাম্পাস", page_icon="🕌", layout="wide")
-
-# প্রফেশনাল ডিজাইন (CSS)
-st.markdown("""
-    <style>
-    .stApp { background-color: #f1f5f9; }
-    .main-header { text-align: center; color: #008080; padding: 20px; font-size: 35px; font-weight: bold; }
-    .notice-box { background: #fffbeb; padding: 20px; border-radius: 12px; border-left: 10px solid #f59e0b; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; color: #856404; }
-    .profile-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 8px solid #008080; }
-    .info-badge { background: #f8fafc; padding: 10px 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e2e8f0; font-size: 16px; color: #1e293b; }
-    .stButton>button { background: linear-gradient(90deg, #008080 0%, #006666 100%); color: white; height: 50px; border-radius: 12px; font-size: 18px; font-weight: 600; border: none; }
-    .teacher-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #e2e8f0; }
-    </style>
-    """, unsafe_allow_html=True)
+st.set_page_config(page_title="Babussalam Digital Campus", layout="wide")
 
 @st.cache_data(ttl=5)
 def load_data(name):
     try:
         df = pd.read_csv(get_url(name))
-        df.columns = df.columns.str.strip() # কলামের বাড়তি স্পেস মুছে ফেলা
+        df.columns = df.columns.str.strip()
         return df
-    except Exception as e:
+    except:
         return None
 
-# --- নেভিগেশন সাইডবার ---
-with st.sidebar:
-    st.markdown("<h2 style='text-align: center;'>🕌 ড্যাশবোর্ড</h2>", unsafe_allow_html=True)
-    menu = st.selectbox("মেনু নির্বাচন করুন:", ["🏠 হোম ও নোটিশ বোর্ড", "🔍 স্টুডেন্ট প্রোফাইল ও রিপোর্ট", "👨‍🏫 শিক্ষক ও স্টাফ গ্যালারি", "🔐 অ্যাডমিন প্যানেল"])
-    st.markdown("---")
-    st.info("মাদরাসা ম্যানেজমেন্ট সফটওয়্যার v2.5")
+# Sidebar Menu
+menu = st.sidebar.radio("Select Menu:", ["🏠 Home", "🔍 Student Profile & Report", "🔐 Admin"])
 
-# ১. হোম ও নোটিশ বোর্ড
-if menu == "🏠 হোম ও নোটিশ বোর্ড":
-    st.markdown("<div class='main-header'>🕌 বাবুস সালাম ইসলামি একাডেমি</div>", unsafe_allow_html=True)
-    df_notice = load_data("Notice")
-    if df_notice is not None and not df_notice.empty:
-        latest_msg = df_notice.iloc[-1]['Message']
-        st.markdown(f"<div class='notice-box'>🔔 <b>সর্বশেষ নোটিশ:</b><br>{latest_msg}</div>", unsafe_allow_html=True)
-    st.image("https://images.unsplash.com/photo-1592288333291-70083b2744a5?q=80&w=2000", use_container_width=True)
+if menu == "🏠 Home":
+    st.title("🕌 বাবুস সালাম ইসলামি একাডেমি")
+    st.info("Student Profile-e ID diye search korle tarikh-shoho hajirar report pawa jabe.")
 
-# ২. স্টুডেন্ট প্রোফাইল (KeyError সমাধানসহ)
-elif menu == "🔍 স্টুডেন্ট প্রোফাইল ও রিপোর্ট":
-    st.markdown("<h2 style='text-align: center; color: #008080;'>🔍 স্টুডেন্ট রিপোর্ট কার্ড</h2>", unsafe_allow_html=True)
-    sid = st.text_input("ছাত্রের আইডি (ID) লিখুন:", placeholder="যেমন: 10001")
+elif menu == "🔍 Student Profile & Report":
+    st.header("🔍 ছাত্রের পূর্ণাঙ্গ রিপোর্ট")
+    sid = st.text_input("Student ID Likhun:")
     
     if sid:
         df_students = load_data("Student_List")
@@ -59,66 +35,52 @@ elif menu == "🔍 স্টুডেন্ট প্রোফাইল ও র�
         df_res = load_data("Result_Sheet")
         
         if df_students is not None:
-            # আইডি কলাম চিনে নেওয়া (ID বা আইডি যাই থাকুক)
-            id_col_list = [c for c in df_students.columns if 'ID' in c.upper() or 'আইডি' in c]
-            if id_col_list:
-                student = df_students[df_students[id_col_list[0]].astype(str) == str(sid)]
+            student = df_students[df_students['ID'].astype(str) == str(sid)]
+            
+            if not student.empty:
+                s = student.iloc[0]
+                # Profile Info
+                st.subheader(f"👤 নাম: {s.get('Name')}")
                 
-                if not student.empty:
-                    s = student.iloc[0]
-                    st.balloons()
-                    c1, c2 = st.columns([1, 2])
-                    with c1:
-                        photo_url = s.get('Photo_URL')
-                        avatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                        try:
-                            st.image(str(photo_url) if not pd.isna(photo_url) else avatar, use_container_width=True, caption=f"ID: {sid}")
-                        except: st.image(avatar, use_container_width=True)
+                # --- HAJIRA SECTION (Advanced) ---
+                st.write("---")
+                st.subheader("📅 হাজিরার বিস্তারিত ও সামারি")
+                
+                if df_att is not None:
+                    # ID column khuje ber kora
+                    id_col = [c for c in df_att.columns if 'ID' in c.upper() or 'আইডি' in c or 'Untitled' in c]
+                    status_col = [c for c in df_att.columns if 'অবস্থা' in c or 'Status' in c]
                     
-                    with c2:
-                        st.markdown(f"""
-                        <div class='profile-card'>
-                            <h2 style='color: #008080; margin-top:0;'>👤 {s.get('Name', s.get('নাম', 'N/A'))}</h2>
-                            <div class='info-badge'><b>👨‍💼 পিতার নাম:</b> {s.get('Father_Name', s.get('পিতার নাম', 'N/A'))}</div>
-                            <div class='info-badge'><b>📞 মোবাইল:</b> {s.get('Mobile', s.get('মোবাইল', 'N/A'))}</div>
-                            <div class='info-badge'><b>📍 ঠিকানা:</b> {s.get('Address', s.get('ঠিকানা', 'N/A'))}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
+                    if id_col and status_col:
+                        # Shudhu ei chhatrer data filter kora
+                        att_res = df_att[df_att[id_col[0]].astype(str) == str(sid)].copy()
+                        
+                        if not att_res.empty:
+                            # Calculation
+                            total_days = len(att_res)
+                            present_days = len(att_res[att_res[status_col[0]].str.contains('উপস্থিত|Present', na=False)])
+                            absent_days = total_days - present_days
+                            
+                            # Summary Dashboard
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("মোট ক্লাস", f"{total_days} দিন")
+                            c2.metric("উপস্থিত", f"{present_days} দিন", delta_color="normal")
+                            c3.metric("অনুপস্থিত", f"{absent_days} দিন", delta="-"+str(absent_days))
+                            
+                            # Tarikh shoho Table (Timestamp column-e tarikh thake)
+                            st.write("**তারিখ অনুযায়ী হাজিরার তালিকা:**")
+                            st.dataframe(att_res[['Timestamp', status_col[0]]], use_container_width=True)
+                        else:
+                            st.warning("Ekhono kono hajira record kora hoyni.")
+                
+                # Result section niche thakbe...
+                if df_res is not None:
                     st.write("---")
-                    tab_a, tab_r = st.tabs(["📅 বার্ষিক হাজিরা রিপোর্ট", "🎓 পরীক্ষার রেজাল্ট কার্ড"])
-                    
-                    with tab_a:
-                        if df_att is not None:
-                            id_col_att = [c for c in df_att.columns if 'ID' in c.upper() or 'আইডি' in c or 'Untitled' in c]
-                            if id_col_att:
-                                att_res = df_att[df_att[id_col_att[0]].astype(str) == str(sid)]
-                                st.dataframe(att_res, use_container_width=True)
-                    
-                    with tab_r:
-                        if df_res is not None:
-                            # রেজাল্ট শিটেও আইডি কলাম চেক করা
-                            id_col_res = [c for c in df_res.columns if 'ID' in c.upper() or 'আইডি' in c]
-                            if id_col_res:
-                                res_match = df_res[df_res[id_col_res[0]].astype(str) == str(sid)]
-                                if not res_match.empty:
-                                    st.table(res_match.drop(columns=[id_col_res[0]]))
-                                else: st.warning("রেজাল্ট পাওয়া যায়নি।")
-                            else: st.error("রেজাল্ট শিটে 'ID' কলাম খুঁজে পাওয়া যাচ্ছে না।")
-                else: st.error("এই আইডি-র কোনো তথ্য পাওয়া যায়নি।")
+                    st.subheader("🎓 রেজাল্ট কার্ড")
+                    res_m = df_res[df_res['ID'].astype(str) == str(sid)]
+                    if not res_m.empty: st.table(res_m.drop(columns=['ID']))
+            else:
+                st.error("ID khuje pawa jayni.")
 
-# ৩. শিক্ষক গ্যালারি
-elif menu == "👨‍🏫 শিক্ষক ও স্টাফ গ্যালারি":
-    st.markdown("<h2 style='text-align: center; color: #008080;'>👨‍🏫 শিক্ষকবৃন্দ</h2>", unsafe_allow_html=True)
-    df_t = load_data("Teacher_List")
-    if df_t is not None:
-        grid = st.columns(3)
-        for i, row in df_t.iterrows():
-            with grid[i % 3]:
-                st.markdown(f"<div class='teacher-card'><h3>{row.get('Name', 'নাম নেই')}</h3><p style='color: #008080;'>{row.get('Designation', 'পদবি নেই')}</p><p>📞 {row.get('Mobile', 'মোবাইল নেই')}</p></div>", unsafe_allow_html=True)
-
-# ৪. অ্যাডমিন প্যানেল
-elif menu == "🔐 অ্যাডমিন প্যানেল":
-    if st.text_input("পাসওয়ার্ড দিন:", type="password") == "admin123":
-        st.success("লগইন সফল!")
-        st.markdown(f'<a href="https://docs.google.com/forms/d/e/1FAIpQLScm285SqA1ByiOzuxAG8bNCCb4-a3ndgrYRiZeZ7JLDXxJJVg/viewform" target="_blank"><button>📝 ডিজিটাল হাজিরা শুরু করুন</button></a>', unsafe_allow_html=True)
+elif menu == "🔐 Admin":
+    st.markdown(f'<a href="https://docs.google.com/forms/d/e/1FAIpQLScm285SqA1ByiOzuxAG8bNCCb4-a3ndgrYRiZeZ7JLDXxJJVg/viewform" target="_blank"><button style="width:100%; height:50px; background:#008080; color:white; border-radius:10px;">📝 হাজিরা নিন</button></a>', unsafe_allow_html=True)
