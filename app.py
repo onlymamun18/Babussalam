@@ -14,34 +14,22 @@ st.set_page_config(page_title="Babussalam Smart Campus", page_icon="🕌", layou
 st.markdown("""
     <style>
     .stApp { background: #f0f2f6; }
-    /* মেইন হেডার */
     .main-header {
         background: linear-gradient(135deg, #008080 0%, #004d4d 100%);
         padding: 45px; border-radius: 25px; color: white; text-align: center;
         box-shadow: 0 15px 30px rgba(0,128,128,0.2); margin-bottom: 35px;
         border-bottom: 8px solid #00b3b3;
     }
-    /* স্ট্যাটাস কার্ড */
     .stat-card {
         background: white; padding: 25px; border-radius: 18px;
         text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.05);
-        border-top: 5px solid #008080; transition: 0.3s;
+        border-top: 5px solid #008080;
     }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
-    
-    /* কন্টাক্ট বক্স - অস্থির লুক */
     .contact-box {
-        background: #ffffff;
-        padding: 15px; border-radius: 12px;
-        border-left: 5px solid #ff4b4b;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        background: #ffffff; padding: 15px; border-radius: 12px;
+        border-left: 5px solid #ff4b4b; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         margin-top: 20px; text-align: center;
     }
-    .contact-link {
-        color: #ff4b4b !important; font-weight: bold; text-decoration: none; font-size: 18px;
-    }
-    
-    /* সাইডবার কন্টাক্ট */
     .sidebar-contact {
         background: #e6f2f2; padding: 15px; border-radius: 10px;
         border: 1px dashed #008080; text-align: center; margin-top: 50px;
@@ -49,7 +37,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-@st.cache_data(ttl=5)
+@st.cache_data(ttl=2)
 def load_data(name):
     try:
         df = pd.read_csv(get_url(name))
@@ -60,25 +48,12 @@ def load_data(name):
 # --- সাইডবার ---
 with st.sidebar:
     st.markdown("<h1 style='color:#008080; text-align:center;'>🏫 বাবুস সালাম</h1>", unsafe_allow_html=True)
-    st.write("---")
     menu = st.radio("মেনু নির্বাচন করুন", ["🏠 হোম ড্যাশবোর্ড", "🔍 স্টুডেন্ট রিপোর্ট", "🔐 অ্যাডমিন অ্যাক্সেস"])
-    
-    # সাইডবারে অস্থির কন্টাক্ট সেকশন
-    st.markdown(f"""
-        <div class='sidebar-contact'>
-            <p style='margin:0; font-size:12px; color:#666;'>যেকোনো প্রয়োজনে</p>
-            <p style='margin:0; font-weight:bold; color:#008080;'>📞 01954343364</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"<div class='sidebar-contact'><p style='margin:0; font-size:12px;'>যেকোনো প্রয়োজনে</p><p style='margin:0; font-weight:bold; color:#008080;'>📞 01954343364</p></div>", unsafe_allow_html=True)
 
 # ১. হোম ড্যাশবোর্ড
 if menu == "🏠 হোম ড্যাশবোর্ড":
-    st.markdown("""
-        <div class='main-header'>
-            <h1 style='margin:0; font-size:40px;'>🕌 বাবুস সালাম ইসলামি একাডেমি</h1>
-            <p style='font-size: 20px; opacity: 0.9;'>ডিজিটাল ক্যাম্পাস ম্যানেজমেন্ট সিস্টেম</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='main-header'><h1>🕌 বাবুস সালাম ইসলামি একাডেমি</h1><p>ডিজিটাল ক্যাম্পাস ম্যানেজমেন্ট সিস্টেম</p></div>", unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns(3)
     df_s = load_data("Student_List")
@@ -98,14 +73,7 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
     with c3: st.markdown(f"<div class='stat-card'><h3>📅 তারিখ</h3><h2 style='color:#008080;'>{datetime.now().strftime('%d %b %Y')}</h2></div>", unsafe_allow_html=True)
 
     st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
-    
-    # ড্যাশবোর্ডে কন্টাক্ট বক্স
-    st.markdown(f"""
-        <div class='contact-box'>
-            <span style='color:#555;'>মাদরাসা সংক্রান্ত যেকোনো তথ্যের জন্য যোগাযোগ করুন: </span>
-            <a href='tel:01954343364' class='contact-link'>📞 01954343364</a>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"<div class='contact-box'><span>মাদরাসা তথ্যের জন্য: </span><a href='tel:01954343364' style='color:#ff4b4b; font-weight:bold; text-decoration:none;'>📞 01954343364</a></div>", unsafe_allow_html=True)
 
 # ২. স্টুডেন্ট রিপোর্ট
 elif menu == "🔍 স্টুডেন্ট রিপোর্ট":
@@ -114,26 +82,33 @@ elif menu == "🔍 স্টুডেন্ট রিপোর্ট":
     if sid:
         df_s = load_data("Student_List")
         if df_s is not None:
-            student = df_s[df_s.iloc[:, 0].astype(str) == str(sid)]
+            # আইডি ম্যাচ করার শক্তিশালী উপায়
+            student = df_s[df_s.iloc[:, 0].astype(str).str.strip() == str(sid).strip()]
             if not student.empty:
                 s = student.iloc[0]
                 name = s.get('Name')
                 col1, col2 = st.columns([1, 2])
                 with col1:
-                    img_url = str(s.get('Photo_URL', 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'))
-                    st.image(img_url, width=200)
+                    # ছবির এরর ফিক্সিং সেকশন
+                    default_img = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                    img_url = s.get('Photo_URL')
+                    # চেক করা হচ্ছে লিঙ্কটি কি আসলেই একটা টেক্সট এবং http দিয়ে শুরু কি না
+                    if isinstance(img_url, str) and img_url.startswith("http"):
+                        try: st.image(img_url, width=200)
+                        except: st.image(default_img, width=200)
+                    else:
+                        st.image(default_img, width=200)
                 with col2:
                     st.markdown(f"<div style='background:white; padding:20px; border-radius:15px; border-left:5px solid #008080;'><h2>{name}</h2><p>পিতা: {s.get('Father_Name')}<br>মোবাইল: {s.get('Mobile')}</p></div>", unsafe_allow_html=True)
                 
                 st.write("---")
-                # উপস্থিতির স্ট্যাটাস চেক
                 if df_a is not None and not df_a.empty:
                     today_data = df_a[df_a.iloc[:, 0].astype(str).str.contains(today_date)]
                     if any(today_data.iloc[:, 1].astype(str).str.contains(str(name))):
                         st.success(f"✅ {name} আজকে উপস্থিত আছে।")
                     else:
                         st.error(f"❌ {name} আজকে অনুপস্থিত।")
-            else: st.error("এই আইডি-র কোনো ছাত্র পাওয়া যায়নি।")
+            else: st.error("এই আইডি-র কোনো ছাত্র পাওয়া যায়নি। শিটে আইডি চেক করুন।")
 
 # ৩. অ্যাডমিন
 elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
