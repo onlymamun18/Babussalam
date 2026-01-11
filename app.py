@@ -7,17 +7,18 @@ SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
 def get_url(sheet_name):
     return f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
 
-# অ্যাপের কনফিগারেশন
-st.set_page_config(page_title="বাবুস সালাম ডিজিটাল একাডেমি", page_icon="🕌", layout="wide")
+# অ্যাপ কনফিগারেশন
+st.set_page_config(page_title="বাবুস সালাম ইসলামি একাডেমি", page_icon="🕌", layout="wide")
 
-# কাস্টম ডিজাইন (CSS)
+# ডিজাইন (CSS)
 st.markdown("""
     <style>
-    .stApp { background-color: #f4f7f6; }
-    .notice-card { background: #fff3cd; padding: 20px; border-radius: 12px; border-left: 8px solid #ffc107; color: #856404; font-size: 18px; font-weight: bold; margin-bottom: 25px; }
-    .profile-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 6px solid #008080; }
-    .info-box { background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #008080; }
-    .stButton>button { background: #008080 !important; color: white !important; font-weight: bold; border-radius: 10px; height: 45px; width: 100%; }
+    .stApp { background-color: #f8fafc; }
+    .madrasa-name { text-align: center; color: #008080; font-size: 40px; font-weight: bold; margin-top: 10px; margin-bottom: 5px; }
+    .madrasa-address { text-align: center; color: #444; font-size: 18px; margin-bottom: 25px; }
+    .notice-card { background: #fff8e1; padding: 20px; border-radius: 12px; border-left: 8px solid #ffa000; margin-bottom: 25px; color: #5f4b00; }
+    .profile-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-top: 6px solid #008080; }
+    .stButton>button { background-color: #008080 !important; color: white !important; font-weight: bold; border-radius: 10px; height: 50px; width: 100%; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -30,28 +31,31 @@ def load_data(name):
     except:
         return None
 
-# --- মেনুবার ---
+# মেনু
 menu = st.sidebar.radio("মেনু নির্বাচন করুন:", ["🏠 হোম পেজ", "🔍 ছাত্র প্রোফাইল ও রিপোর্ট", "👨‍🏫 শিক্ষক তালিকা", "🔐 অ্যাডমিন"])
 
-# ১. হোম পেজ (ব্যানারসহ)
+# ১. হোম পেজ (আপনার দেওয়া ব্যানার ও নামসহ)
 if menu == "🏠 হোম পেজ":
-    # ব্যানার লোড করার শক্তিশালী পদ্ধতি
+    # আপনার মাদরাসার নাম ও ঠিকানা
+    st.markdown("<div class='madrasa-name'>🕌 বাবুস সালাম ইসলামি একাডেমি</div>", unsafe_allow_html=True)
+    st.markdown("<div class='madrasa-address'>পূর্বপাড় দিঘুলী, খামারবাড়ী মোড়, দিগপাইত, জামালপুর</div>", unsafe_allow_html=True)
+    
+    # আপনার দেওয়া ব্যানার ছবি (babu.jpg)
     banner_url = "https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg"
     try:
         st.image(banner_url, use_container_width=True)
     except:
-        st.warning("ব্যানার লোড করা যাচ্ছে না, তবে অ্যাপ চলবে।")
+        st.error("ব্যানার লোড হচ্ছে না। GitHub-এ babu.jpg ফাইলটি সঠিক নামে আপলোড করা আছে কি না চেক করুন।")
     
-    st.markdown("<h2 style='text-align: center; color: #008080;'>🕌 ডিজিটাল ম্যানেজমেন্ট সিস্টেমে স্বাগতম</h2>", unsafe_allow_html=True)
-    
+    # নোটিশ বোর্ড
     df_n = load_data("Notice")
     if df_n is not None and not df_n.empty:
         msg = df_n.iloc[-1]['Message']
-        st.markdown(f"<div class='notice-card'>📢 নোটিশ: {msg}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='notice-card'>📢 <b>জরুরি নোটিশ:</b> {msg}</div>", unsafe_allow_html=True)
 
-# ২. ছাত্র প্রোফাইল (ছবির এরর ফিক্স করা হয়েছে)
+# ২. ছাত্র প্রোফাইল (সব তথ্য)
 elif menu == "🔍 ছাত্র প্রোফাইল ও রিপোর্ট":
-    st.header("🔍 স্টুডেন্ট রিপোর্ট কার্ড")
+    st.header("🔍 ছাত্রের পূর্ণাঙ্গ রিপোর্ট")
     sid = st.text_input("ছাত্রের আইডি (ID) লিখুন:", placeholder="যেমন: 10001")
     
     if sid:
@@ -69,57 +73,50 @@ elif menu == "🔍 ছাত্র প্রোফাইল ও রিপোর�
                     col1, col2 = st.columns([1, 2])
                     
                     with col1:
-                        # ছবির এরর হ্যান্ডেলিং - এটিই আপনার এরর সমাধান করবে
-                        photo_url = s.get('Photo_URL')
-                        default_avatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                        
+                        p_url = s.get('Photo_URL')
+                        avatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
                         try:
-                            # যদি ফটো ইউআরএল খালি থাকে বা নাল হয়
-                            if pd.isna(photo_url) or str(photo_url).strip() == "" or "http" not in str(photo_url):
-                                st.image(default_avatar, width=230, caption="ছবি পাওয়া যায়নি")
+                            if pd.isna(p_url) or str(p_url).strip() == "":
+                                st.image(avatar, width=230)
                             else:
-                                st.image(str(photo_url), width=230, caption=f"ID: {sid}")
+                                st.image(str(p_url), width=230)
                         except:
-                            st.image(default_avatar, width=230, caption="ভুল লিঙ্ক")
+                            st.image(avatar, width=230)
                     
                     with col2:
                         st.markdown(f"""
                         <div class='profile-card'>
                             <h2 style='color:#008080;'>👤 {s.get('Name', s.get('নাম', 'N/A'))}</h2>
-                            <div class='info-box'><b>👨‍💼 পিতার নাম:</b> {s.get('Father_Name', 'N/A')}</div>
-                            <div class='info-box'><b>📞 মোবাইল:</b> {s.get('Mobile', 'N/A')}</div>
-                            <div class='info-box'><b>📍 ঠিকানা:</b> {s.get('Address', 'N/A')}</div>
+                            <p><b>👨‍💼 পিতার নাম:</b> {s.get('Father_Name', 'N/A')}</p>
+                            <p><b>📞 মোবাইল:</b> {s.get('Mobile', 'N/A')}</p>
+                            <p><b>📍 ঠিকানা:</b> {s.get('Address', 'N/A')}</p>
                         </div>
                         """, unsafe_allow_html=True)
 
-                    # হাজিরা ও রেজাল্ট সেকশন
+                    # হাজিরা ও রেজাল্ট ট্যাব
                     st.write("---")
-                    tab1, tab2 = st.tabs(["📅 হাজিরার রিপোর্ট", "🎓 রেজাল্ট"])
-                    
-                    with tab1:
+                    t1, t2 = st.tabs(["📅 হাজিরার রিপোর্ট", "🎓 পরীক্ষার রেজাল্ট"])
+                    with t1:
                         if df_a is not None:
                             id_col_a = [c for c in df_a.columns if 'ID' in c.upper() or 'আইডি' in c or 'Untitled' in c]
-                            status_col = [c for c in df_a.columns if 'অবস্থা' in c or 'Status' in c]
-                            if id_col_a and status_col:
-                                user_att = df_a[df_a[id_col_a[0]].astype(str) == str(sid)]
-                                if not user_att.empty:
-                                    st.dataframe(user_att[['Timestamp', status_col[0]]], use_container_width=True)
-                    
-                    with tab2:
+                            st_col = [c for c in df_a.columns if 'অবস্থা' in c or 'Status' in c]
+                            if id_col_a and st_col:
+                                u_att = df_a[df_a[id_col_a[0]].astype(str) == str(sid)]
+                                st.dataframe(u_att[['Timestamp', st_col[0]]], use_container_width=True)
+                    with t2:
                         if df_r is not None:
                             id_col_r = [c for c in df_r.columns if 'ID' in c.upper() or 'আইডি' in c]
                             if id_col_r:
-                                user_res = df_r[df_r[id_col_r[0]].astype(str) == str(sid)]
-                                if not user_res.empty:
-                                    st.table(user_res.drop(columns=[id_col_r[0]]))
-                else: st.error("দুঃখিত, এই আইডি-র কোনো ছাত্র পাওয়া যায়নি।")
+                                u_res = df_r[df_r[id_col_r[0]].astype(str) == str(sid)]
+                                st.table(u_res.drop(columns=[id_col_r[0]]))
 
-# ৩. শিক্ষক তালিকা ও ৪. অ্যাডমিন (আগের মতোই থাকবে)
+# ৩. শিক্ষক তালিকা
 elif menu == "👨‍🏫 শিক্ষক তালিকা":
     st.header("👨‍🏫 আমাদের শিক্ষকবৃন্দ")
     df_t = load_data("Teacher_List")
     if df_t is not None: st.dataframe(df_t, use_container_width=True)
 
+# ৪. অ্যাডমিন
 elif menu == "🔐 অ্যাডমিন":
     if st.text_input("পাসওয়ার্ড:", type="password") == "admin123":
         st.success("লগইন সফল")
