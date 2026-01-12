@@ -6,7 +6,8 @@ import base64
 
 # --- কনফিগারেশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
-SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDAkDiA3Y6JaOpabswiWqpvoxHEwlJDkIgDyEXlP4yfhhSoB5HH6akOgk2CbXP-VY/exec"
+# আপনার নতুন দেওয়া স্ক্রিপ্ট লিঙ্ক এখানে বসানো হয়েছে
+SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziNe1yiHbRtNZYuDbdY3ZGfbEw1UaigJrWCPexdc1JzKHVDPALHWlgSy4B1Gyd_l7d/exec"
 IMGBB_API_KEY = "67b93a0279c9417855b7662c16263546" 
 
 def get_url(sheet_name):
@@ -14,7 +15,7 @@ def get_url(sheet_name):
 
 st.set_page_config(page_title="Babussalam Smart Campus", page_icon="🕌", layout="wide")
 
-# --- ডিজাইন ---
+# --- প্রিমিয়াম ডিজাইন ---
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #e0f2f1 0%, #f1f8e9 50%, #fff3e0 100%); }
@@ -28,6 +29,11 @@ st.markdown("""
         color: white; padding: 20px; border-radius: 15px; text-align: center;
         font-size: 22px; font-weight: bold; margin-bottom: 25px;
         border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .contact-card {
+        background: white; padding: 20px; border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;
+        border-left: 5px solid #008080; margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -49,18 +55,7 @@ def load_data():
 
 df_s, df_a, latest_notice, df_r = load_data()
 
-# --- লজিক ফাংশনস ---
-def get_present_list():
-    if df_a is None or df_a.empty: return []
-    now = datetime.now()
-    t_str = f"{now.month}/{now.day}/{now.year}"
-    present_names = []
-    for _, row in df_a.iterrows():
-        if t_str in str(row.iloc[0]):
-            names = str(row.iloc[1]).split(',')
-            present_names.extend([n.strip().lower() for n in names])
-    return list(set(present_names))
-
+# ইমেজ আপলোড
 def upload_image(image_file):
     try:
         url = "https://api.imgbb.com/1/upload"
@@ -70,7 +65,7 @@ def upload_image(image_file):
     except: return "-"
 
 # --- মেনু ---
-menu = st.sidebar.radio("মেইন মেনু", ["🏠 হোম ড্যাশবোর্ড", "🔍 স্টুডেন্ট প্রোফাইল", "📊 হাজিরা রিপোর্ট", "📝 রেজাল্ট শিট", "🔐 অ্যাডমিন অ্যাক্সেস"])
+menu = st.sidebar.radio("মেইন মেনু", ["🏠 হোম ড্যাশবোর্ড", "🔍 স্টুডেন্ট প্রোফাইল", "📊 হাজিরা রিপোর্ট", "📝 রেজাল্ট শিট", "📞 যোগাযোগ ও সোশ্যাল", "🔐 অ্যাডমিন অ্যাক্সেস"])
 
 # ১. হোম
 if menu == "🏠 হোম ড্যাশবোর্ড":
@@ -78,27 +73,21 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
     st.markdown(f"<div class='notice-box'>📢 নোটিশ: {latest_notice}</div>", unsafe_allow_html=True)
     st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
 
-# ২. স্টুডেন্ট প্রোফাইল
+# ২. প্রোফাইল
 elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
     st.header("🔍 শিক্ষার্থীর তথ্য অনুসন্ধান")
-    is_admin = st.sidebar.text_input("অ্যাডমিন পিন (বিস্তারিত তথ্য দেখতে):", type="password", key="p_pin") == "MdmamuN18"
     sid = st.text_input("আইডি (ID) দিন:").strip()
     if sid and df_s is not None:
         student = df_s[df_s.iloc[:, 0].astype(str) == sid]
         if not student.empty:
             s = student.iloc[0]
             st.subheader(f"নাম: {s['Name']}")
-            present_today = get_present_list()
-            if s['Name'].lower() in present_today: st.success("✅ আজকে উপস্থিত")
-            else: st.error("❌ আজকে অনুপস্থিত")
-            
-            if is_admin: st.table(pd.DataFrame(s.items(), columns=["বিষয়", "তথ্য"]))
-            else: st.info("বিস্তারিত তথ্য দেখতে অ্যাডমিন পিন দিয়ে সাইডবার থেকে লগইন করুন।")
-        else: st.error("আইডি পাওয়া যায়নি।")
+            st.table(pd.DataFrame(s.items(), columns=["বিষয়", "তথ্য"]))
+        else: st.error("এই আইডির কোনো ছাত্র পাওয়া যায়নি।")
 
 # ৩. হাজিরা রিপোর্ট
 elif menu == "📊 হাজিরা রিপোর্ট":
-    st.header("📊 উপস্থিতি সারাংশ")
+    st.header("📊 মোট উপস্থিতি তালিকা")
     if df_s is not None and df_a is not None:
         rep = []
         for _, row in df_s.iterrows():
@@ -115,61 +104,54 @@ elif menu == "📝 রেজাল্ট শিট":
         if not res.empty: st.table(res.T)
         else: st.warning("রেজাল্ট পাওয়া যায়নি।")
 
-# ৫. অ্যাডমিন অ্যাক্সেস
+# ৫. যোগাযোগ ও সোশ্যাল (আপনার চাহিদা অনুযায়ী)
+elif menu == "📞 যোগাযোগ ও সোশ্যাল":
+    st.header("📞 আমাদের সাথে যোগাযোগ")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("<div class='contact-card'><h3>📱 মোবাইল</h3><p>01954343364</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='contact-card'><h3>🌐 ফেসবুক পেজ</h3><a href='https://www.facebook.com/share/18Y28D9gKj/' target='_blank'>ফেসবুক পেজে যেতে ক্লিক করুন</a></div>", unsafe_allow_html=True)
+    with c2:
+        st.markdown("<div class='contact-card'><h3>📧 ইমেইল</h3><p>babussalam@gmail.com</p></div>", unsafe_allow_html=True)
+        st.markdown("<div class='contact-card'><h3>📍 ঠিকানা</h3><p>ঢাকা, বাংলাদেশ</p></div>", unsafe_allow_html=True)
+
+# ৬. অ্যাডমিন অ্যাক্সেস
 elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
-    if st.text_input("মাস্টার পিন দিন:", type="password", key="adm_master") == "MdmamuN18":
-        opt = st.selectbox("কাজ নির্বাচন করুন", ["মাদরাসার ছাত্র তালিকা (All Students)", "হাজিরা নিন", "ছাত্র ব্যবস্থাপনা (ভর্তি/এডিট/ডিলিট)", "নোটিশ আপডেট"])
+    if st.text_input("অ্যাডমিন পিন:", type="password") == "MdmamuN18":
+        opt = st.selectbox("কাজ নির্বাচন করুন", ["মাদরাসার ছাত্র তালিকা", "হাজিরা নিন", "ছাত্র ভর্তি/এডিট/ডিলিট", "নোটিশ আপডেট"])
         
-        # --- নতুন: সব ছাত্রের তালিকা দেখার অংশ ---
-        if opt == "মাদরাসার ছাত্র তালিকা (All Students)":
-            st.subheader("📋 সকল ছাত্রছাত্রীর তালিকা")
-            if df_s is not None:
-                st.write(f"মোট ছাত্র সংখ্যা: {len(df_s)}")
-                st.dataframe(df_s, use_container_width=True)
-            else:
-                st.error("ছাত্র তালিকা লোড করা সম্ভব হয়নি।")
+        if opt == "মাদরাসার ছাত্র তালিকা":
+            st.subheader("📋 সকল শিক্ষার্থীর লিস্ট")
+            st.dataframe(df_s, use_container_width=True)
 
-        # হাজিরা
         elif opt == "হাজিরা নিন":
-            st.subheader("📝 হাজিরা ফর্ম")
-            p_list = get_present_list()
-            rem = [n for n in df_s['Name'].tolist() if n.lower() not in p_list]
-            sel = st.multiselect("নাম সিলেক্ট করুন:", rem)
-            if st.button("হাজিরা সেভ"):
+            st.subheader("📝 আজকের হাজিরা")
+            sel = st.multiselect("উপস্থিত ছাত্র সিলেক্ট করুন:", df_s['Name'].tolist())
+            if st.button("হাজিরা সেভ করুন"):
                 requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(sel)})
-                st.success("জমা হয়েছে!")
-                st.rerun()
+                st.success("হাজিরা সফলভাবে জমা হয়েছে!")
 
-        # ছাত্র ব্যবস্থাপনা
-        elif opt == "ছাত্র ব্যবস্থাপনা (ভর্তি/এডিট/ডিলিট)":
-            sub_opt = st.radio("কি করতে চান?", ["নতুন ভর্তি (Add)", "তথ্য সংশোধন (Edit)", "ছাত্র বাদ দিন (Delete)"])
+        elif opt == "ছাত্র ভর্তি/এডিট/ডিলিট":
+            mode = st.radio("অ্যাকশন:", ["নতুন ভর্তি (Add)", "তথ্য সংশোধন (Edit)", "ছাত্র বাদ দিন (Delete)"])
             
-            if sub_opt == "নতুন ভর্তি (Add)":
-                with st.form("add_form"):
-                    c1, c2 = st.columns(2)
-                    v1=c1.text_input("ID*"); v2=c1.text_input("Name*"); v3=c1.text_input("Father"); v4=c1.text_input("Mother")
-                    v6=c2.text_input("Mobile"); v7=c2.text_input("Address"); v11=st.file_uploader("Photo")
+            if mode == "নতুন ভর্তি (Add)":
+                with st.form("add_student"):
+                    v1=st.text_input("ID*"); v2=st.text_input("Name*"); v3=st.text_input("Father"); v4=st.text_input("Mother")
+                    v6=st.text_input("Mobile"); v7=st.text_input("Address"); v11=st.file_uploader("Photo")
                     if st.form_submit_button("ভর্তি নিশ্চিত করুন"):
                         img = upload_image(v11) if v11 else "-"
-                        requests.post(SCRIPT_URL, json={"action": "admission", "id": v1, "name": v2, "father": v3, "mother": v4, "mobile": v6, "address": v7, "photo": img})
-                        st.success("ভর্তি সফল!")
+                        payload = {"action": "admission", "id": v1, "name": v2, "father": v3, "mother": v4, "mobile": v6, "address": v7, "photo": img}
+                        requests.post(SCRIPT_URL, json=payload)
+                        st.success("ছাত্র সফলভাবে ভর্তি করা হয়েছে!")
 
-            elif sub_opt == "তথ্য সংশোধন (Edit)":
-                target_id = st.selectbox("সংশোধন করতে আইডি বেছে নিন:", df_s.iloc[:, 0].tolist())
-                student_data = df_s[df_s.iloc[:, 0] == target_id].iloc[0]
-                with st.form("edit_form"):
-                    new_name = st.text_input("নাম", value=student_data['Name'])
-                    new_mob = st.text_input("মোবাইল", value=student_data.get('Mobile', ''))
-                    if st.form_submit_button("তথ্য আপডেট করুন"):
-                        requests.post(SCRIPT_URL, json={"action": "edit", "id": target_id, "name": new_name, "mobile": new_mob})
-                        st.success("তথ্য সংশোধিত হয়েছে!")
+            elif mode == "Edit (সংশোধন)":
+                st.info("সংশোধন করার জন্য সরাসরি গুগল শিট ব্যবহার করা সবচেয়ে নিরাপদ।")
 
-            elif sub_opt == "ছাত্র বাদ দিন (Delete)":
-                del_id = st.selectbox("বাদ দিতে আইডি বেছে নিন:", df_s.iloc[:, 0].tolist())
-                if st.button("ছাত্র ডিলিট করুন", type="primary"):
+            elif mode == "Delete (বাদ দিন)":
+                del_id = st.text_input("যে আইডি বাদ দিতে চান:")
+                if st.button("ডিলিট করুন", type="primary"):
                     requests.post(SCRIPT_URL, json={"action": "delete", "id": del_id})
-                    st.warning(f"আইডি {del_id} ডিলিট করা হয়েছে।")
-                    st.rerun()
+                    st.warning("আইডি মুছে ফেলা হয়েছে।")
 
         elif opt == "নোটিশ আপডেট":
             txt = st.text_area("নতুন নোটিশ:")
