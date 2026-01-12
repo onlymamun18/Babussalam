@@ -96,7 +96,15 @@ elif menu == "🔍 স্টুডেন্ট রিপোর্ট":
         if not student.empty:
             s = student.iloc[0]
             st.success(f"### নাম: {s['Name']}")
-            if 'Photo' in s and s['Photo'] != "-": st.image(s['Photo'], width=150)
+            
+            photo_url = s.get('Photo', '-')
+            if photo_url and photo_url != "-" and photo_url.startswith("http"):
+                try:
+                    st.image(photo_url, width=150)
+                except:
+                    st.warning("ছবিটি লোড করা যাচ্ছে না।")
+            else:
+                st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=150)
             st.write(f"**পিতা:** {s.get('Father', '-')}")
             st.write(f"**মোবাইল:** {s.get('Mobile', '-')}")
             
