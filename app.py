@@ -77,7 +77,7 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
     
     st.markdown("<h3 style='text-align: center;'>যেকোনো প্রয়োজনে আমাদের সাথে যোগাযোগ করুন</h3>", unsafe_allow_html=True)
     st.markdown('<a href="tel:01954343364" class="big-button call-btn">📞 সরাসরি কল করুন (01954343364)</a>', unsafe_allow_html=True)
-    st.markdown('<a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn">🔵 ফেসবুক পেজে যুক্ত হোন</a>', unsafe_allow_html=True)
+    st.markdown('<a href="https://web.facebook.com/BabussalamIslamiAcademi" target="_blank" class="big-button fb-btn">🔵 ফেসবুক পেজে যুক্ত হোন</a>', unsafe_allow_html=True)
     
     st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
 
