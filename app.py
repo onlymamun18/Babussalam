@@ -72,14 +72,39 @@ def upload_image(image_file):
 # --- ৪. নেভিগেশন ---
 menu = st.sidebar.radio("🧭 মেনু নেভিগেশন", ["🏠 হোম ড্যাশবোর্ড", "🔍 প্রোফাইল সার্চ", "📊 দৈনিক হাজিরা", "📝 রেজাল্ট শিট", "🔐 অ্যাডমিন প্যানেল"])
 
-# --- হোম পেজ ---
+# --- হোম ড্যাশবোর্ড (নতুন এবং আকর্ষণীয় ডিজাইন) ---
 if menu == "🏠 হোম ড্যাশবোর্ড":
-    st.markdown("<div class='main-header'><h1>🕌 বাবুস সালাম একাডেমি</h1><p>স্মার্ট ডিজিটাল ক্যাম্পাস ম্যানেজমেন্ট সিস্টেম</p></div>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    col1.markdown('<a href="tel:01954343364" class="big-button call-btn">📱 সরাসরি কল করুন</a>', unsafe_allow_html=True)
-    col2.markdown('<a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn">🔵 ফেসবুক পেজ</a>', unsafe_allow_html=True)
-    st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
+    st.markdown("""
+        <div class='main-header'>
+            <h1>🕌 বাবুস সালাম একাডেমি</h1>
+            <p>আপনার সন্তানের উজ্জ্বল ভবিষ্যৎ গড়তে আমরা প্রতিশ্রুতিবদ্ধ</p>
+        </div>
+    """, unsafe_allow_html=True)
 
+    # যোগাযোগের আকর্ষণীয় কার্ড
+    st.markdown("### 📞 আমাদের সাথে যুক্ত থাকুন")
+    c1, c2 = st.columns(2)
+    
+    with c1:
+        st.markdown(f"""
+            <div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #11998e; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <h4 style="color: #1e3c72; margin:0;">ভর্তি বা যেকোনো প্রয়োজনে</h4>
+                <p style="color: #666; font-size: 14px;">সরাসরি আমাদের অফিসিয়াল নম্বরে কথা বলুন</p>
+                <a href="tel:01954343364" class="big-button call-btn" style="text-decoration: none;">📱 সরাসরি কল করুন</a>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with c2:
+        st.markdown(f"""
+            <div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #0072ff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <h4 style="color: #1e3c72; margin:0;">মাদরাসার নিয়মিত আপডেট</h4>
+                <p style="color: #666; font-size: 14px;">আমাদের ফেসবুক পেজে যুক্ত হয়ে সব খবর জানুন</p>
+                <a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn" style="text-decoration: none;">🔵 ফেসবুক পেজ ভিজিট করুন</a>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True, caption="বাবুস সালাম একাডেমি স্মার্ট ডিজিটাল ক্যাম্পাস")
 # --- প্রোফাইল সার্চ (Guardian vs Admin Logic) ---
 elif menu == "🔍 প্রোফাইল সার্চ":
     st.header("🔍 শিক্ষার্থীর তথ্য অনুসন্ধান")
