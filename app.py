@@ -6,7 +6,6 @@ import base64
 
 # --- কনফিগারেশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
-# আপনার নতুন দেওয়া স্ক্রিপ্ট লিঙ্ক এখানে বসানো হয়েছে
 SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDAkDiA3Y6JaOpabswiWqpvoxHEwlJDkIgDyEXlP4yfhhSoB5HH6akOgk2CbXP-VY/exec"
 IMGBB_API_KEY = "67b93a0279c9417855b7662c16263546" 
 
@@ -30,7 +29,6 @@ st.markdown("""
         font-size: 24px; font-weight: bold; margin-bottom: 25px;
         border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
-    .contact-hero { background: linear-gradient(135deg, #ff4b4b, #800000); padding: 20px; border-radius: 15px; color: white; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,30 +48,37 @@ def load_data():
     except: return None, None, "লোডিং...", None
 
 df_s, df_a, latest_notice, df_r = load_data()
-# তারিখ ফরম্যাট শিটের সাথে মিল রাখার জন্য
-today = datetime.now().strftime("%-m/%-d/%Y")
 
-def upload_image(image_file):
-    try:
-        url = "https://api.imgbb.com/1/upload"
-        payload = {"key": IMGBB_API_KEY, "image": base64.b64encode(image_file.read()).decode('utf-8')}
-        res = requests.post(url, payload)
-        return res.json()['data']['url']
-    except: return "-"
+# তারিখের ভিন্নতা দূর করার জন্য ফাংশন
+def get_today_attendance():
+    if df_a is None or df_a.empty:
+        return []
+    
+    # আজকের দিন, মাস, বছর আলাদা করা
+    now = datetime.now()
+    t_day = str(now.day)
+    t_month = str(now.month)
+    t_year = str(now.year)
+    
+    present_names = []
+    for _, row in df_a.iterrows():
+        date_str = str(row.iloc[0])
+        # চেক করা হচ্ছে আজকের তারিখ এই রো-তে আছে কি না (সহজ পদ্ধতিতে)
+        if t_day in date_str and t_month in date_str and t_year in date_str:
+            names = str(row.iloc[1]).split(',')
+            present_names.extend([n.strip().lower() for n in names])
+    return present_names
 
 # --- মেনু ---
-menu = st.sidebar.radio("মেইন মেনু", ["🏠 হোম ড্যাশবোর্ড", "🔍 স্টুডেন্ট প্রোফাইল", "📊 হাজিরা রিপোর্ট", "📝 রেজাল্ট শিট", "🔐 অ্যাডমিন অ্যাক্সেস"])
+menu = st.sidebar.radio("মেইন মেনু", ["🏠 হোম ড্যাশবোর্ড", "🔍 স্টুডেন্ট প্রোফাইল", "📊 হাজিরা রিপোর্ট", "🔐 অ্যাডমিন অ্যাক্সেস"])
 
-# ১. হোম ড্যাশবোর্ড
 if menu == "🏠 হোম ড্যাশবোর্ড":
     st.markdown("<div class='main-header'><h1>🕌 বাবুস সালাম একাডেমি</h1><p>স্মার্ট ডিজিটাল ক্যাম্পাস</p></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='notice-box'>📢 নোটিশ: {latest_notice}</div>", unsafe_allow_html=True)
     st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
-    st.markdown(f"<div class='contact-hero'><h3>📞 যোগাযোগ: 01954343364</h3></div>", unsafe_allow_html=True)
 
-# ২. স্টুডেন্ট রিপোর্ট
 elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
-    st.header("🔍 শিক্ষার্থীর তথ্য অনুসন্ধান")
+    st.header("🔍 শিক্ষার্থীর প্রোফাইল")
     sid = st.text_input("আইডি (ID) দিন:").strip()
     if sid and df_s is not None:
         student = df_s[df_s.iloc[:, 0].astype(str) == sid]
@@ -82,92 +87,49 @@ elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
             st.subheader(f"নাম: {s.get('Name', 'N/A')}")
             
             # উপস্থিতি চেক
-            all_p = ""
-            if df_a is not None and not df_a.empty:
-                today_rows = df_a[df_a.iloc[:, 0].str.contains(today, na=False)]
-                all_p = ",".join(today_rows.iloc[:, 1].astype(str)).lower()
-            
+            p_list = get_today_attendance()
             st.markdown("---")
-            if str(s.get('Name','')).lower() in all_p:
-                st.success(f"✅ **{s['Name']}** আজকে উপস্থিত আছে।")
-            else: st.error(f"❌ **{s['Name']}** আজকে এখনও অনুপস্থিত।")
+            if str(s.get('Name','')).lower() in p_list:
+                st.success("✅ আজকে উপস্থিত আছে।")
+            else:
+                st.error("❌ আজকে অনুপস্থিত।")
             
-            # মোট উপস্থিতি
             if df_a is not None:
                 count = len(df_a[df_a.iloc[:, 1].str.contains(s['Name'], case=False, na=False)])
-                st.info(f"📊 এই পর্যন্ত মোট উপস্থিতি: {count} দিন")
+                st.info(f"📊 মোট উপস্থিতি: {count} দিন")
         else: st.error("আইডি পাওয়া যায়নি")
 
-# ৩. হাজিরা রিপোর্ট
 elif menu == "📊 হাজিরা রিপোর্ট":
-    st.header("📊 শিক্ষার্থীদের মোট উপস্থিতি তালিকা")
+    st.header("📊 মোট উপস্থিতি তালিকা")
     if df_s is not None and df_a is not None:
         rep_list = []
         for _, row in df_s.iterrows():
             name = row['Name']
-            sid = row.iloc[0]
             count = len(df_a[df_a.iloc[:, 1].str.contains(name, case=False, na=False)])
-            rep_list.append({"ID": sid, "নাম": name, "মোট উপস্থিতি": f"{count} দিন"})
+            rep_list.append({"ID": row.iloc[0], "নাম": name, "মোট উপস্থিতি": f"{count} দিন"})
         st.table(pd.DataFrame(rep_list))
 
-# ৪. রেজাল্ট শিট
-elif menu == "📝 রেজাল্ট শিট":
-    st.header("📝 পরীক্ষার ফলাফল")
-    rid = st.text_input("রেজাল্ট দেখতে আইডি (ID) দিন:").strip()
-    if rid and df_r is not None:
-        res = df_r[df_r.iloc[:, 0].astype(str) == rid]
-        if not res.empty: st.table(res.T)
-        else: st.warning("রেজাল্ট পাওয়া যায়নি।")
-
-# ৫. অ্যাডমিন অ্যাক্সেস
 elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
-    admin_pin = st.text_input("অ্যাডমিন পিন দিন:", type="password", key="main_adm")
-    if admin_pin == "MdmamuN18":
+    if st.text_input("পিন কোড:", type="password") == "MdmamuN18":
         opt = st.selectbox("কাজ নির্বাচন করুন", ["হাজিরা নিন", "নতুন ভর্তি", "নোটিশ আপডেট"])
         
         if opt == "হাজিরা নিন":
-            st.subheader("📝 আজকের হাজিরা")
-            already_p = []
-            if df_a is not None:
-                t_rows = df_a[df_a.iloc[:, 0].str.contains(today, na=False)]
-                for names in t_rows.iloc[:, 1].astype(str):
-                    already_p.extend([n.strip() for n in names.split(',')])
-            
-            rem_students = [n for n in df_s['Name'].tolist() if n not in already_p]
+            st.subheader("📝 হাজিরা ফর্ম")
+            p_list = get_today_attendance()
+            rem_students = [n for n in df_s['Name'].tolist() if n.lower() not in p_list]
             
             if not rem_students:
-                st.success("✅ আজকের জন্য সবার হাজিরা নেওয়া শেষ!")
+                st.success("✅ সবার হাজিরা শেষ!")
             else:
-                sel = st.multiselect("উপস্থিত ছাত্র সিলেক্ট করুন:", rem_students)
-                if st.button("হাজিরা সেভ করুন"):
-                    if sel:
-                        try:
-                            resp = requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(sel)})
-                            if resp.status_code == 200:
-                                st.success("হাজিরা সফলভাবে জমা হয়েছে!")
-                                st.rerun()
-                            else:
-                                st.error(f"সার্ভার এরর: {resp.status_code}")
-                        except Exception as e:
-                            st.error(f"সংযোগ বিচ্ছিন্ন: {e}")
+                sel = st.multiselect("নাম সিলেক্ট করুন:", rem_students)
+                if st.button("হাজিরা সেভ"):
+                    resp = requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(sel)})
+                    st.success("সেভ হয়েছে!")
+                    st.rerun()
 
         elif opt == "নতুন ভর্তি":
-            with st.form("adm_form", clear_on_submit=True):
-                c1, c2 = st.columns(2)
-                v1 = c1.text_input("আইডি*"); v2 = c1.text_input("নাম*")
-                v3 = c1.text_input("পিতার নাম"); v4 = c1.text_input("মাতার নাম")
-                v5 = c1.text_input("জন্ম তারিখ"); v6 = c2.text_input("মোবাইল")
-                v7 = c2.text_input("ঠিকানা"); v8 = c2.text_input("থানা")
-                v9 = c2.text_input("জেলা"); v10 = c2.text_input("জন্ম সনদ নং")
-                v11 = st.file_uploader("ছবি")
-                if st.form_submit_button("ভর্তি নিশ্চিত করুন"):
-                    img = upload_image(v11) if v11 else "-"
-                    p = {"action": "admission", "id": v1, "name": v2, "father": v3, "mother": v4, "mobile": v6, "address": v7, "thana": v8, "zella": v9, "dob": v5, "birth_cert": v10, "photo": img}
-                    requests.post(SCRIPT_URL, json=p)
-                    st.success("ভর্তি সম্পন্ন!")
-
-        elif opt == "নোটিশ আপডেট":
-            txt = st.text_area("নতুন নোটিশ লিখুন:")
-            if st.button("আপডেট"):
-                requests.post(SCRIPT_URL, json={"action": "save_notice", "text": txt})
-                st.success("নোটিশ আপডেট হয়েছে!")
+            with st.form("adm_form"):
+                v1 = st.text_input("আইডি*"); v2 = st.text_input("নাম*")
+                if st.form_submit_button("ভর্তি করুন"):
+                    requests.post(SCRIPT_URL, json={"action": "admission", "id": v1, "name": v2})
+                    st.success("সফল!")
