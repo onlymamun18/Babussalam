@@ -6,7 +6,8 @@ import base64
 
 # --- কনফিগারেশন ---
 SHEET_ID = '1TRbxG151RFzNdKbQ7KShWWV1MJHIVxSNdF-rSfLMde0'
-SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaOoNMXgz2bbQEDPDiMBpmgOEjFeIJEkuNU_zCdHCuq2GRsG_cp5L-P_wTPufmsvP2/exec"
+# আপনার নতুন দেওয়া স্ক্রিপ্ট লিঙ্ক এখানে বসানো হয়েছে
+SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDAkDiA3Y6JaOpabswiWqpvoxHEwlJDkIgDyEXlP4yfhhSoB5HH6akOgk2CbXP-VY/exec"
 IMGBB_API_KEY = "67b93a0279c9417855b7662c16263546" 
 
 def get_url(sheet_name):
@@ -33,7 +34,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ডাটা লোড (ttl=0 রাখা হয়েছে যাতে সাথে সাথে আপডেট হয়)
+# ডাটা লোড
 @st.cache_data(ttl=0)
 def load_data():
     try:
@@ -49,6 +50,7 @@ def load_data():
     except: return None, None, "লোডিং...", None
 
 df_s, df_a, latest_notice, df_r = load_data()
+# তারিখ ফরম্যাট শিটের সাথে মিল রাখার জন্য
 today = datetime.now().strftime("%-m/%-d/%Y")
 
 def upload_image(image_file):
@@ -72,12 +74,6 @@ if menu == "🏠 হোম ড্যাশবোর্ড":
 # ২. স্টুডেন্ট রিপোর্ট
 elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
     st.header("🔍 শিক্ষার্থীর তথ্য অনুসন্ধান")
-    is_admin = False
-    with st.sidebar:
-        if st.text_input("অ্যাডমিন পিন:", type="password", key="rep_pin") == "MdmamuN18":
-            is_admin = True
-            st.success("🔓 অ্যাডমিন মোড অ্যাক্টিভ")
-
     sid = st.text_input("আইডি (ID) দিন:").strip()
     if sid and df_s is not None:
         student = df_s[df_s.iloc[:, 0].astype(str) == sid]
@@ -85,11 +81,6 @@ elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
             s = student.iloc[0]
             st.subheader(f"নাম: {s.get('Name', 'N/A')}")
             
-            if is_admin:
-                st.table(pd.DataFrame(s.items(), columns=["বিষয়", "তথ্য"]))
-            else:
-                st.warning("🔒 ব্যক্তিগত তথ্য লুকানো।")
-
             # উপস্থিতি চেক
             all_p = ""
             if df_a is not None and not df_a.empty:
@@ -101,13 +92,13 @@ elif menu == "🔍 স্টুডেন্ট প্রোফাইল":
                 st.success(f"✅ **{s['Name']}** আজকে উপস্থিত আছে।")
             else: st.error(f"❌ **{s['Name']}** আজকে এখনও অনুপস্থিত।")
             
-            # মোট উপস্থিতি গণনা
+            # মোট উপস্থিতি
             if df_a is not None:
                 count = len(df_a[df_a.iloc[:, 1].str.contains(s['Name'], case=False, na=False)])
                 st.info(f"📊 এই পর্যন্ত মোট উপস্থিতি: {count} দিন")
         else: st.error("আইডি পাওয়া যায়নি")
 
-# ৩. হাজিরা রিপোর্ট (নতুন সেকশন)
+# ৩. হাজিরা রিপোর্ট
 elif menu == "📊 হাজিরা রিপোর্ট":
     st.header("📊 শিক্ষার্থীদের মোট উপস্থিতি তালিকা")
     if df_s is not None and df_a is not None:
@@ -136,14 +127,12 @@ elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
         
         if opt == "হাজিরা নিন":
             st.subheader("📝 আজকের হাজিরা")
-            # অলরেডি হাজিরা দেওয়া ছাত্রদের ফিল্টার করা
             already_p = []
             if df_a is not None:
                 t_rows = df_a[df_a.iloc[:, 0].str.contains(today, na=False)]
                 for names in t_rows.iloc[:, 1].astype(str):
                     already_p.extend([n.strip() for n in names.split(',')])
             
-            # শুধু যাদের হাজিরা বাকি আছে তাদের দেখানো
             rem_students = [n for n in df_s['Name'].tolist() if n not in already_p]
             
             if not rem_students:
@@ -152,9 +141,15 @@ elif menu == "🔐 অ্যাডমিন অ্যাক্সেস":
                 sel = st.multiselect("উপস্থিত ছাত্র সিলেক্ট করুন:", rem_students)
                 if st.button("হাজিরা সেভ করুন"):
                     if sel:
-                        requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(sel)})
-                        st.success("হাজিরা সফলভাবে জমা হয়েছে!")
-                        st.rerun()
+                        try:
+                            resp = requests.post(SCRIPT_URL, json={"action": "attendance", "names": ", ".join(sel)})
+                            if resp.status_code == 200:
+                                st.success("হাজিরা সফলভাবে জমা হয়েছে!")
+                                st.rerun()
+                            else:
+                                st.error(f"সার্ভার এরর: {resp.status_code}")
+                        except Exception as e:
+                            st.error(f"সংযোগ বিচ্ছিন্ন: {e}")
 
         elif opt == "নতুন ভর্তি":
             with st.form("adm_form", clear_on_submit=True):
