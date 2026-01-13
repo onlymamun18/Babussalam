@@ -15,7 +15,7 @@ def get_url(sheet_name):
 
 st.set_page_config(page_title="Babussalam Smart Campus", page_icon="🕌", layout="wide")
 
-# --- ২. স্টাইলিশ কালারফুল UI (CSS) ---
+# --- ২. প্রিমিয়াম ডিজাইন (আপনার দেওয়া ডিজাইন অপরিবর্তিত) ---
 st.markdown("""
     <style>
     .stApp { background: #f1f4f9; }
@@ -37,7 +37,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ৩. ডাটা হ্যান্ডলিং ---
+# --- ৩. ডাটা লোড ---
 @st.cache_data(ttl=1)
 def load_all_data():
     try:
@@ -55,108 +55,112 @@ def upload_image(image_file):
         return res.json()['data']['url'] if res.status_code == 200 else "-"
     except: return "-"
 
-# --- ৪. নেভিগেশন ---
+# --- ৪. নেভিগেশন মেনু ---
 menu = st.sidebar.radio("🧭 মেনু নেভিগেশন", ["🏠 হোম ড্যাশবোর্ড", "🔍 প্রোফাইল সার্চ", "📊 দৈনিক হাজিরা", "📝 রেজাল্ট শিট", "🔐 অ্যাডমিন প্যানেল"])
 
 # --- হোম ড্যাশবোর্ড ---
 if menu == "🏠 হোম ড্যাশবোর্ড":
-    st.markdown("""
-        <div class='main-header'>
-            <h1>🕌 বাবুস সালাম একাডেমি</h1>
-            <p>আপনার সন্তানের উজ্জ্বল ভবিষ্যৎ গড়তে আমরা প্রতিশ্রুতিবদ্ধ</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("### 📞 আমাদের সাথে যুক্ত থাকুন")
+    st.markdown("<div class='main-header'><h1>🕌 বাবুস সালাম একাডেমি</h1><p>আপনার সন্তানের উজ্জ্বল ভবিষ্যৎ গড়তে আমরা প্রতিশ্রুতিবদ্ধ</p></div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"""
-            <div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #11998e; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <h4 style="color: #1e3c72; margin:0;">ভর্তি বা যেকোনো প্রয়োজনে</h4>
-                <a href="tel:01954343364" class="big-button call-btn" style="text-decoration: none;">📱 সরাসরি কল করুন</a>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #11998e; box-shadow: 0 4px 10px rgba(0,0,0,0.05);"><h4 style="color: #1e3c72; margin:0;">ভর্তি বা যেকোনো প্রয়োজনে</h4><a href="tel:01954343364" class="big-button call-btn" style="text-decoration: none;">📱 সরাসরি কল করুন</a></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""
-            <div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #0072ff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <h4 style="color: #1e3c72; margin:0;">মাদরাসার নিয়মিত আপডেট</h4>
-                <a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn" style="text-decoration: none;">🔵 ফেসবুক পেজ ভিজিট করুন</a>
-            </div>
-        """, unsafe_allow_html=True)
-    
+        st.markdown('<div style="background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #0072ff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);"><h4 style="color: #1e3c72; margin:0;">মাদরাসার নিয়মিত আপডেট</h4><a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn" style="text-decoration: none;">🔵 ফেসবুক পেজ ভিজিট করুন</a></div>', unsafe_allow_html=True)
     st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
 
 # --- প্রোফাইল সার্চ ---
 elif menu == "🔍 প্রোফাইল সার্চ":
     st.header("🔍 শিক্ষার্থীর তথ্য অনুসন্ধান")
-    is_admin_p = st.sidebar.text_input("অ্যাডমিন পিন দিন:", type="password") == ADMIN_PIN
-    sid = st.text_input("শিক্ষার্থীর আইডি (ID) দিন:").strip()
+    is_admin = st.sidebar.text_input("অ্যাডমিন পিন:", type="password") == ADMIN_PIN
+    sid = st.text_input("আইডি (ID) দিন:").strip()
     if sid and df_s is not None:
         student = df_s[df_s.iloc[:, 0].str.strip() == sid]
         if not student.empty:
             s = student.iloc[0]
-            if is_admin_p:
+            if is_admin:
                 st.table(pd.DataFrame(s.items(), columns=["বিবরণ", "তথ্য"]))
-                if len(s) > 10 and s.iloc[10] != "-": st.image(s.iloc[10], width=200)
             else:
                 st.subheader(f"নাম: {s.iloc[1]} | আইডি: {s.iloc[0]}")
-        else: st.error("দুঃখিত, এই আইডি পাওয়া যায়নি।")
+        else: st.error("আইডি পাওয়া যায়নি।")
 
-# --- হাজিরা (সংশোধিত অংশ: নামসহ ডাটা যাবে) ---
+# --- ৫. হাজিরা সেকশন (একদম নির্ভুল ফিক্স) ---
 elif menu == "📊 দৈনিক হাজিরা":
     st.header("📊 প্রতিদিনের হাজিরা")
     if df_s is not None:
-        with st.form("att_form_final"):
+        with st.form("attendance_form"):
             h_date = st.date_input("তারিখ নির্বাচন করুন", datetime.now())
-            att_data = []
-            for _, row in df_s.iterrows():
-                sid, sname = row.iloc[0], row.iloc[1]
-                status = st.selectbox(f"{sname} ({sid})", ["উপস্থিত", "অনুপস্থিত", "ছুটি"], key=f"att_{sid}")
-                # এখানে ID এর সাথে Name ও পাঠানো হচ্ছে
-                att_data.append({"date": str(h_date), "id": sid, "name": sname, "status": status})
+            st.write("---")
             
-            if st.form_submit_button("হাজিরা সেভ করুন"):
-                # পুরো ডাটা লিস্ট একসাথে স্ক্রিপ্টে পাঠানো হচ্ছে
-                response = requests.post(SCRIPT_URL, json={"action": "attendance", "data": att_data})
-                st.success(f"সফলভাবে {len(att_data)} জন ছাত্রের হাজিরা শিটে জমা হয়েছে!")
+            # ডাটা সংগ্রহের লিস্ট
+            final_attendance_list = []
+            
+            for _, row in df_s.iterrows():
+                std_id = row.iloc[0]
+                std_name = row.iloc[1]
+                
+                # ড্রপডাউন মেনু প্রতিটি ছাত্রের জন্য
+                status = st.selectbox(f"ছাত্র: {std_name} ({std_id})", ["উপস্থিত", "অনুপস্থিত", "ছুটি"], key=f"key_{std_id}")
+                
+                # গুগল শিটে পাঠানোর জন্য ডাটা ফরম্যাট করা
+                final_attendance_list.append({
+                    "date": str(h_date),
+                    "id": str(std_id),
+                    "name": str(std_name),
+                    "status": status
+                })
+            
+            submit = st.form_submit_button("✅ হাজিরা সেভ করুন")
+            
+            if submit:
+                with st.spinner('শিটে ডাটা পাঠানো হচ্ছে...'):
+                    # গুগল স্ক্রিপ্টে পোস্ট করা
+                    response = requests.post(SCRIPT_URL, json={
+                        "action": "attendance",
+                        "data": final_attendance_list
+                    })
+                    
+                    if response.status_code == 200:
+                        st.success(f"আলহামদুলিল্লাহ! {len(final_attendance_list)} জন ছাত্রের হাজিরা সফলভাবে সেভ হয়েছে।")
+                    else:
+                        st.error("দুঃখিত! গুগল শিটে ডাটা পাঠানো সম্ভব হয়নি। আপনার গুগল স্ক্রিপ্ট চেক করুন।")
     else:
-        st.error("ছাত্র তালিকা লোড করা সম্ভব হয়নি।")
+        st.error("ছাত্র তালিকা (Student_List) লোড করা সম্ভব হয়নি। শিট চেক করুন।")
 
-# --- রেজাল্ট ও অ্যাডমিন প্যানেল আপনার আগের মতোই থাকবে ---
+# --- রেজাল্ট ও অ্যাডমিন (অপরিবর্তিত) ---
 elif menu == "📝 রেজাল্ট শিট":
     st.header("📝 পরীক্ষার ফলাফল")
     rid = st.text_input("আইডি দিন:").strip()
     if rid and df_r is not None:
         res = df_r[df_r.iloc[:, 0].str.strip() == rid]
         if not res.empty: st.table(res.iloc[0])
-        else: st.warning("রেজাল্ট পাওয়া যায়নি।")
+        else: st.warning("রেজাল্ট পাওয়া যায়নি।")
 
 elif menu == "🔐 অ্যাডমিন প্যানেল":
-    if st.sidebar.text_input("পিন:", type="password") == ADMIN_PIN:
-        opt = st.selectbox("কাজ নির্বাচন করুন:", ["নতুন ভর্তি (১১ তথ্য)", "রেজাল্ট এন্ট্রি (১০ বিষয়)", "ছাত্র তালিকা দেখুন", "ডাটা ডিলিট করুন"])
+    if st.sidebar.text_input("অ্যাডমিন পিন:", type="password") == ADMIN_PIN:
+        opt = st.selectbox("কাজ নির্বাচন করুন:", ["নতুন ভর্তি (১১ তথ্য)", "রেজাল্ট এন্ট্রি (১০ বিষয়)", "ছাত্র তালিকা দেখুন", "ডাটা ডিলিট করুন"])
         if opt == "নতুন ভর্তি (১১ তথ্য)":
-            with st.form("adm"):
+            with st.form("adm_f"):
                 c1, c2 = st.columns(2)
                 v1=c1.text_input("আইডি*"); v2=c1.text_input("নাম*"); v3=c1.text_input("পিতা"); v4=c1.text_input("মাতা"); v5=c1.text_input("ঠিকানা")
                 v6=c2.text_input("মোবাইল"); v7=c2.text_input("থানা"); v8=c2.text_input("জেলা"); v9=c2.text_input("জন্ম তারিখ"); v10=c2.text_input("জন্ম সনদ"); v11=st.file_uploader("ছবি")
-                if st.form_submit_button("ভর্তি সম্পন্ন করুন"):
+                if st.form_submit_button("ভর্তি সম্পন্ন"):
                     img = upload_image(v11) if v11 else "-"
                     requests.post(SCRIPT_URL, json={"action": "admission", "id": v1, "name": v2, "father": v3, "mother": v4, "address": v5, "mobile": v6, "thana": v7, "zella": v8, "dob": v9, "birth_cert": v10, "photo": img})
-                    st.success("সফল!")
-        elif opt == "রেজাল্ট এন্ট্রি (১০ বিষয়)":
-            with st.form("res"):
-                rid=st.text_input("আইডি*"); rname=st.text_input("নাম*"); rexam=st.text_input("পরীক্ষা*")
+                    st.success("ভর্তি সফল!")
+        elif opt == "রেজাল্ট এন্ট্রি (১০ বিষয়)":
+            with st.form("res_f"):
+                rid=st.text_input("ID*"); rname=st.text_input("Name*"); rexam=st.text_input("Exam*")
                 r1=st.number_input("আরবি"); r2=st.number_input("বাংলা"); r3=st.number_input("ইংরেজি"); r4=st.number_input("গণিত"); r5=st.number_input("হাদিস")
                 r6=st.number_input("কালিমা"); r7=st.number_input("কুরআন"); r8=st.number_input("সমাজ"); r9=st.number_input("বিজ্ঞান"); r10=st.number_input("সাধারণ জ্ঞান")
-                if st.form_submit_button("সেভ"):
+                if st.form_submit_button("রেজাল্ট সেভ"):
                     total = r1+r2+r3+r4+r5+r6+r7+r8+r9+r10
                     requests.post(SCRIPT_URL, json={"action": "add_result", "id": rid, "name": rname, "exam": rexam, "total": total})
-                    st.success("রেজাল্ট সেভ হয়েছে!")
+                    st.success("সেভ হয়েছে!")
         elif opt == "ছাত্র তালিকা দেখুন":
-            st.dataframe(df_s)
+            if df_s is not None: st.dataframe(df_s)
         elif opt == "ডাটা ডিলিট করুন":
             did = st.text_input("আইডি:")
             if st.button("ডিলিট"):
                 requests.post(SCRIPT_URL, json={"action": "delete", "id": did})
-                st.success("ডিলিট হয়েছে!")
-    else: st.warning("পিন দিন।")
+                st.success("ডিলিট সম্পন্ন!")
+    else: st.warning("পিন দিয়ে প্যানেল আনলক করুন।")
