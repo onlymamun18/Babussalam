@@ -35,7 +35,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ৩. ডাটা হ্যান্ডলিং (ব্র্যাকেট ফিক্সড) ---
+# --- ৩. ডাটা লোড ---
 @st.cache_data(ttl=1)
 def load_all_data():
     try:
@@ -55,69 +55,12 @@ def upload_image(file):
     except:
         return "-"
 
-# --- ৪. মেনু ---
+# --- ৪. মেনু নেভিগেশন ---
 menu = st.sidebar.radio("🧭 প্রধান মেনু", ["🏠 হোম ড্যাশবোর্ড", "🔍 প্রোফাইল সার্চ", "📊 দৈনিক হাজিরা", "📝 রেজাল্ট শিট", "🔐 অ্যাডমিন প্যানেল"])
 
+# --- হোম পেজ ---
 if menu == "🏠 হোম ড্যাশবোর্ড":
     st.markdown("<div class='main-header'><h1>🕌 বাবুস সালাম একাডেমি</h1><p>ডিজিটাল ক্যাম্পাস ড্যাশবোর্ড</p></div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1: st.markdown('<a href="tel:01954343364" class="big-button call-btn">📞 কল করুন</a>', unsafe_allow_html=True)
-    with c2: st.markdown('<a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn">🔵 ফেসবুক পেজ</a>', unsafe_allow_html=True)
-    st.image("https://raw.githubusercontent.com/Anisurrahmananis/babussalam/main/babu.jpg", use_container_width=True)
-
-elif menu == "🔍 প্রোফাইল সার্চ":
-    st.header("🔍 প্রোফাইল ও হাজিরা")
-    sid = st.text_input("আইডি দিন:").strip()
-    if sid and df_s is not None:
-        student = df_s[df_s.iloc[:, 0].str.strip() == sid]
-        if not student.empty:
-            s = student.iloc[0]
-            st.subheader(f"👤 নাম: {s[1]}")
-            if df_a is not None:
-                t1 = datetime.now().strftime('%Y-%m-%d')
-                t2 = datetime.now().strftime('%d/%m/%Y')
-                match = df_a[(df_a.iloc[:, 1].str.strip() == sid) & (df_a.iloc[:, 0].str.contains(t1) | df_a.iloc[:, 0].str.contains(t2))]
-                if not match.empty: st.success(f"✅ আজকের হাজিরা: **{match.iloc[-1, 3]}**")
-                else: st.warning("📅 আজ এখনো হাজিরা দেওয়া হয়নি।")
-            if st.sidebar.text_input("অ্যাডমিন পিন:", type="password") == ADMIN_PIN:
-                st.table(pd.DataFrame({"বিবরণ": ["আইডি", "পিতা", "মোবাইল", "ঠিকানা"], "তথ্য": [s[0], s[2], s[5], s[4]]}))
-        else: st.error("আইডি পাওয়া যায়নি।")
-
-elif menu == "📊 দৈনিক হাজিরা":
-    if st.sidebar.text_input("পিন:", type="password", key="att_p") == ADMIN_PIN:
-        st.header("📊 প্রতিদিনের হাজিরা")
-        if df_s is not None:
-            with st.form("att_form"):
-                att_data = []
-                for _, row in df_s.iterrows():
-                    status = st.selectbox(f"{row[1]} ({row[0]})", ["উপস্থিত", "অনুপস্থিত", "ছুটি"], key=row[0])
-                    att_data.append({"id": row[0], "name": row[1], "status": status})
-                if st.form_submit_button("✅ হাজিরা সেভ করুন"):
-                    requests.post(SCRIPT_URL, json={"action": "attendance", "data": att_data})
-                    st.success("হাজিরা সফলভাবে সেভ হয়েছে!")
-    else: st.info("অ্যাডমিন পিন দিন।")
-
-elif menu == "📝 রেজাল্ট শিট":
-    rid = st.text_input("রেজাল্ট দেখতে আইডি দিন:")
-    if rid and df_r is not None:
-        res = df_r[df_r.iloc[:, 0].str.strip() == rid]
-        if not res.empty: st.table(res.iloc[0])
-        else: st.error("রেজাল্ট পাওয়া যায়নি।")
-
-elif menu == "🔐 অ্যাডমিন প্যানেল":
-    if st.sidebar.text_input("পিন:", type="password", key="adm_p") == ADMIN_PIN:
-        choice = st.selectbox("কাজ", ["নতুন ভর্তি", "ছাত্র তালিকা", "ডিলিট"])
-        if choice == "নতুন ভর্তি":
-            with st.form("adm_f"):
-                v1=st.text_input("ID"); v2=st.text_input("Name"); v3=st.text_input("Father"); v4=st.text_input("Mobile"); v5=st.file_uploader("Photo")
-                if st.form_submit_button("ভর্তি নিশ্চিত করুন"):
-                    photo = upload_image(v5) if v5 else "-"
-                    payload = {"action": "admission", "id": v1, "name": v2, "father": v3, "mobile": v4, "photo": photo}
-                    requests.post(SCRIPT_URL, json=payload)
-                    st.success("ভর্তি সফল!")
-        elif choice == "ছাত্র তালিকা": st.dataframe(df_s)
-        elif choice == "ডিলিট":
-            did = st.text_input("ডিলিট আইডি:")
-            if st.button("ডিলিট"):
-                requests.post(SCRIPT_URL, json={"action": "delete", "id": did})
-                st.warning("ডিলিট সম্পন্ন!")
+    with c2: st.markdown('<a href="https://www.facebook.com/share/18Y28D9gKj/" target="_blank" class="big-button fb-btn">🔵 ফেসবুক পেজ</a>', unsafe_allow_
